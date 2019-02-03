@@ -47,6 +47,7 @@ class ClassList():
     
 #file i/o functions
 #maybe this should just be part class above teachers, teacher list teacher schedule?
+#if so add pattern matching to identify how many in/out times for eac day
 def read_teachers(filePath):
     #throw away first line or maybe use to determine day
     fin = open(filePath, 'rt')
@@ -85,6 +86,7 @@ def teacher_sched(teacherTimes):
     print()
     #orgainize teacher schedule by teacher or day?  teacher
     #count how many days in schedule and how many in/out times in day from file
+    #need to have class set up before this point
     dayCount=4
     inOutCount=4
     for line in teacherTimes:
@@ -115,22 +117,18 @@ def teacher_sched(teacherTimes):
                     inOut.append(inTime)
                     inOut.append(outTime)
                     #add to tuple to lis day list
-                    dayList[i].append(inOut) 
-                else:
-                    dayList[i].append(inOut)
+                dayList[i].append(inOut) 
 
         #test data is there before running it through teacher init
         print(name)
         #print each day
         for i in range(0, dayCount): 
             print('day', i)
-            #for j in range(0, inOutCount):
-            #for times in dayList[i][j]:
-                #print(len(dayList[i][j])
-                #print(dayList[i][j])
-                #if(dayList):
-                    #print('In: ', dayList[i][j][0])
-                    #print('Out: ', dayList[i][j][1])
+            for j in range(0, inOutCount):
+            #for j in range(0, len(dayList[i])):
+                if(dayList[i][j]):
+                    print('In: ', dayList[i][j][0])
+                    print('Out: ', dayList[i][j][1])
                     
     return
 
@@ -164,6 +162,27 @@ def read_stu_file(filePath):
         
     fin.close()
     return classData    
+
+def min_to_time(minTime):
+    print()
+    print('time= ', minTime)
+
+    minutes=minTime%60
+    hour=int(minTime/60)
+    print('hour= ', hour)
+    print('minutes= ', minutes)
+    
+    if hour == 12:
+        timeOfDay='PM'
+    elif hour > 12:
+        timeOfDay='PM'
+        hour= hour-12
+    else:
+        timeOfDay='AM'    
+    
+    time=str(hour) + ':' + str(minutes) + ' ' + timeOfDay
+    print('time= ', time)
+    return time 
 
 def time_to_min(time):
     #input time as string
@@ -241,3 +260,8 @@ teacher_sched(testTeacherData)
 #time_to_min('9:30 AM')
 #time_to_min('10:30')
 #time_to_min('2:30')
+
+min_to_time(750)
+min_to_time(570)
+min_to_time(630)
+min_to_time(870)
