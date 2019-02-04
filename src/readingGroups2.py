@@ -20,6 +20,99 @@ class readingGroup():
         self.studentList
         self.activityList=[]
 
+class Staff_Schedule():
+    def __init__(self):
+        self.dayCount=0
+
+    def read_teachers(self, filePath):
+        #throw away first line or maybe use to determine day
+        fin = open(filePath, 'rt')
+        line=fin.readline() 
+        #line=line[:-1:]
+        #print(line)
+
+        teacherData=[]
+        
+        teacherDataList=[]
+        while True:
+            #read in each student by line and count total
+            line= fin.readline()
+            if not line:
+                break
+            #line=line[:-1:]
+            #print each line of student data
+            #print(line)
+            
+            #add to teacherData list
+            teacherData=line.split(',')
+            teacherDataList.append(teacherData)
+        
+        fin.close()
+        #print(teacherDataList)
+        return teacherDataList
+        
+    #file i/o functions
+    #maybe this should just be part class above teachers, teacher list teacher schedule?
+    #if so add pattern matching to identify how many in/out times for eac day
+    #def read_teachers(filePath):
+
+    def teacher_sched(self, teacherTimes):
+        #input: list of strings each string lis line from teacher schedule file
+        #output list of teacher objects
+        #start by just making general schedule for one day/all week
+        teacherList=[]
+        print('teacherTimes list')
+        print(teacherTimes)
+        print()
+        print()
+        #orgainize teacher schedule by teacher or day?  teacher
+        #count how many days in schedule and how many in/out times in day from file
+        #need to have class set up before this point
+        dayCount=4
+        inOutCount=4
+        for line in teacherTimes:
+            #list of days, each day is list of in/out lists
+            dayList=[]
+            name =line.pop(0)
+            #list of days, each day is list of time chunks which is list  clockin/out times
+            #hard coded, need to add functions
+            dayCount=4
+            inOutCount=2
+            #loop for each day
+            for i in range(0, dayCount):
+                #each day is list of in/out times
+                #dayList[i]=[]
+                dayList.append([])
+                #get each time that teacher enters/leaves class in one day
+                for j in range(0, inOutCount):
+                    #get in and out Time as string
+                    inTimeStr=line.pop(0)
+                    outTimeStr=line.pop(0) 
+                    #convert int time to min int times with function
+                    #need handling for empty strngs if:else intime=NONE
+                    inOut=[]
+                    if(inTimeStr):
+                        inTime=time_to_min(inTimeStr)
+                        outTime=time_to_min(outTimeStr)
+                        #add to list tuple list
+                        inOut.append(inTime)
+                        inOut.append(outTime)
+                        #add to tuple to lis day list
+                    dayList[i].append(inOut) 
+
+            #change to separate function
+            print(name)
+            #print each day
+            for i in range(0, dayCount): 
+                print('day', i)
+                for j in range(0, inOutCount):
+                #for j in range(0, len(dayList[i])):
+                    if(dayList[i][j]):
+                        print('In: ', dayList[i][j][0])
+                        print('Out: ', dayList[i][j][1])
+                        
+        return
+
 class Teacher():
     def __init__(self, first, last):
        self.first
@@ -45,92 +138,6 @@ class ClassList():
 #class ReadingActivity(filePath):
     #pass
     
-#file i/o functions
-#maybe this should just be part class above teachers, teacher list teacher schedule?
-#if so add pattern matching to identify how many in/out times for eac day
-def read_teachers(filePath):
-    #throw away first line or maybe use to determine day
-    fin = open(filePath, 'rt')
-    line=fin.readline() 
-    #line=line[:-1:]
-    #print(line)
-
-    teacherData=[]
-    
-    teacherDataList=[]
-    while True:
-        #read in each student by line and count total
-        line= fin.readline()
-        if not line:
-            break
-        #line=line[:-1:]
-        #print each line of student data
-        #print(line)
-        
-        #add to teacherData list
-        teacherData=line.split(',')
-        teacherDataList.append(teacherData)
-    
-    fin.close()
-    #print(teacherDataList)
-    return teacherDataList 
-
-def teacher_sched(teacherTimes):
-    #input: list of strings each string lis line from teacher schedule file
-    #output list of teacher objects
-    #start by just making general schedule for one day/all week
-    teacherList=[]
-    print('teacherTimes list')
-    print(teacherTimes)
-    print()
-    print()
-    #orgainize teacher schedule by teacher or day?  teacher
-    #count how many days in schedule and how many in/out times in day from file
-    #need to have class set up before this point
-    dayCount=4
-    inOutCount=4
-    for line in teacherTimes:
-        #list of days, each day is list of in/out lists
-        dayList=[]
-        name =line.pop(0)
-        #list of days, each day is list of time chunks which is list  clockin/out times
-        #hard coded, need to add functions
-        dayCount=4
-        inOutCount=2
-        #loop for each day
-        for i in range(0, dayCount):
-            #each day is list of in/out times
-            #dayList[i]=[]
-            dayList.append([])
-            #get each time that teacher enters/leaves class in one day
-            for j in range(0, inOutCount):
-                #get in and out Time as string
-                inTimeStr=line.pop(0)
-                outTimeStr=line.pop(0) 
-                #convert int time to min int times with function
-                #need handling for empty strngs if:else intime=NONE
-                inOut=[]
-                if(inTimeStr):
-                    inTime=time_to_min(inTimeStr)
-                    outTime=time_to_min(outTimeStr)
-                    #add to list tuple list
-                    inOut.append(inTime)
-                    inOut.append(outTime)
-                    #add to tuple to lis day list
-                dayList[i].append(inOut) 
-
-        #test data is there before running it through teacher init
-        print(name)
-        #print each day
-        for i in range(0, dayCount): 
-            print('day', i)
-            for j in range(0, inOutCount):
-            #for j in range(0, len(dayList[i])):
-                if(dayList[i][j]):
-                    print('In: ', dayList[i][j][0])
-                    print('Out: ', dayList[i][j][1])
-                    
-    return
 
 def read_stu_file(filePath):
     studentCount=0
@@ -247,10 +254,10 @@ testStData=['joe', 'smith', 1]
 student1= Student(testStData)
 #student1.print_student()
 
-read_teachers('teacher.csv')
-testTeacherData= read_teachers('teacher.csv')
+#read_teachers('teacher.csv')
+#testTeacherData= read_teachers('teacher.csv')
 #print(testTeacherData)
-teacher_sched(testTeacherData)
+#teacher_sched(testTeacherData)
 
 #test clastList class constructor
 #class1= ClassList(classTestData, testTeacherData)
@@ -260,8 +267,13 @@ teacher_sched(testTeacherData)
 #time_to_min('9:30 AM')
 #time_to_min('10:30')
 #time_to_min('2:30')
+#min_to_time(750)
+#min_to_time(570)
+#min_to_time(630)
+#min_to_time(870)
 
-min_to_time(750)
-min_to_time(570)
-min_to_time(630)
-min_to_time(870)
+teacherSchedLines=[]
+myStaff =Staff_Schedule()
+teacherSchedLines= myStaff.read_teachers('teacher.csv')
+print(teacherSchedLines)
+myStaff.teacher_sched(teacherSchedLines)
