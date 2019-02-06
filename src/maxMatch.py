@@ -71,6 +71,7 @@ class graph():
             self.print_queue()
             self.print_debug('start of while')
             w= self.queue.pop(0)
+            #change to my own search function if time
             if w in self.V:
                 for u in self.E[w.num]:
                     #if u is free in list of vertices connected to w

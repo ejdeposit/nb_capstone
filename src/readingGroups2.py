@@ -1,4 +1,4 @@
-#Evan DePosit
+#!Evan DePosit
 #New Beginnings
 #capstone
 # This file contains class data structures to store student information and functions to read that information from a file
@@ -23,6 +23,7 @@ class readingGroup():
 class Staff_Schedule():
     def __init__(self):
         self.dayCount=0
+        self.teacherList=[]
 
     def read_teachers(self, filePath):
         #throw away first line or maybe use to determine day
@@ -110,15 +111,32 @@ class Staff_Schedule():
                     if(dayList[i][j]):
                         print('In: ', dayList[i][j][0])
                         print('Out: ', dayList[i][j][1])
-                        
+          
+            self.teacherList.append(Teacher(name, dayList))
         return
-
+        
+    def print_staff(self):
+       print('print staff function')
+       for teacher in self.teacherList:
+            teacher.print_teacher()
+            
 class Teacher():
-    def __init__(self, first, last):
-       self.first
-       self.last
-       self.availableTimes=[]
-
+    def __init__(self, name, schedule):
+       self.name=name
+       self.schedule=schedule
+    
+    def print_teacher(self):
+        print(self.name)
+        day=0
+        for i in self.schedule:
+            print('day ', day)
+            inOut= 0
+            for time in self.schedule[day]:
+                if self.schedule[day][inOut]:
+                    print(self.schedule[day][inOut][0])
+                    print(self.schedule[day][inOut][1])
+                inOut= inOut + 1
+            day=day + 1
 class ClassList():
     def __init__(self, studentData, teacherData):
         #add number of days in week
@@ -255,6 +273,7 @@ student1= Student(testStData)
 #student1.print_student()
 
 #read_teachers('teacher.csv')
+
 #testTeacherData= read_teachers('teacher.csv')
 #print(testTeacherData)
 #teacher_sched(testTeacherData)
@@ -277,3 +296,4 @@ myStaff =Staff_Schedule()
 teacherSchedLines= myStaff.read_teachers('teacher.csv')
 print(teacherSchedLines)
 myStaff.teacher_sched(teacherSchedLines)
+myStaff.print_staff()
