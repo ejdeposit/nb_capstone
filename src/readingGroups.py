@@ -4,16 +4,54 @@
 #This file contains class data structures to store student information and functions to read that information from a file
 
 #classes
+class Event():
+    def __init__(self, day, startStop):
+        self.startStop=startStop
+        self.day= day
+        #can be either pointer to one student or group of students
+        self.students=None
+
+class Group_Lesson(Event):
+    def __init__(self, teacher, day, startStop):
+        super().__init__(day, startStop)
+        self.teacher=teacher
+    
 class Class_Schedule():
     def __init__(self, teacherSchedule, classList, scheduleTimes):
         self.teacherSchedule=teacherSchedule
         self.classList=classList
         #schedule times is schedule_parameters object
-        self.scheduleTimes=scheduleTimes  
+        #change to list of schedule_paramters objects, one for each day
+        self.schedParams=scheduleTimes  
         masterGroupActList=[]
         masterGroupEventList=[]
+        
+    #generate activity list for each readingGroup 
+    def make_reading_group_act():
+        pass
 
-        #generate activity list for each readingGroup 
+    def make_reading_lessons(self):
+    #input:self used to access teacher objects
+    #output: creates event, adds it to list for teachers and master events list
+        weekLen= self.schedParams.days
+        for teacher in self.teacherSchedule.teacherList:        
+            print(teacher.name)
+            for day in range(0, weekLen):    
+                #function that returns list of in/out times for day
+                times= teacher.get_days_inOuts(day)
+                print('day ', day)
+                print(times)
+                #get length of days
+                #interate over list of inout times`
+                for inOut in times:
+                    if inOut:
+                        print(inOut[0])
+                        print(inOut[1])
+                        #compare in/out times to see if it matches up with events 
+                        #if times matche create event
+                            #create event
+                            #add to teachers list
+                            #add to master list
 
         #go through each groups activity list and add it to master list
 
@@ -21,20 +59,24 @@ class Class_Schedule():
 
         #add teacher events to masterEventList
 
-        #run teacherEvents through max match algorithm
+    #run teacherEvents through max match algorithm
 
 class Schedule_Parameters():
     def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
+    #def __init__(self, days, actPerDay, duration):
         self.days=days
         self.actPerDay=actPerDay
         self.duration = duration
+        #list of of days, each day is  list of start and stop times
+        self.eventTimes=[]
+
+    #def set_events_times(day, start1, end1, start2=None, end2=None)
+         
         self.start1=start1
         self.end1= end1
         self.start2=start2
         self.end2=end2
-        #list of events, events list of start and stop times
-        self.eventTimes=[]
-        
+
         event=0
         periodStart=self.start1
         periodEnd=self.end1
@@ -54,10 +96,10 @@ class Schedule_Parameters():
             self.eventTimes.append(startEnd)
             #update variables for next time through loop
             nonScheduled=nonScheduled-1
-            print('start: ', actStart)
-            print('end: ', actEnd)
-            print(startEnd)
-            print('remaining events to plan: ', nonScheduled)
+            #print('start: ', actStart)
+            #print('end: ', actEnd)
+            #print(startEnd)
+            #print('remaining events to plan: ', nonScheduled)
             #add to list of event times
             periodStart= actEnd           
             actInPeriod=int((periodEnd-periodStart)/self.duration)
@@ -79,18 +121,21 @@ class Schedule_Parameters():
                 self.eventTimes.append(startEnd)
                 #update variables for next time through loop
                 nonScheduled=nonScheduled-1
-                print('start: ', actStart)
-                print('end: ', actEnd)
-                print(startEnd)
-                print('remaining events to plan: ', nonScheduled)
+                #print('start: ', actStart)
+                #print('end: ', actEnd)
+                #print(startEnd)
+                #print('remaining events to plan: ', nonScheduled)
                 #add to list of event times
                 periodStart= actEnd           
                 actInPeriod=int((periodEnd-periodStart)/self.duration)
             
         
-        for event in self.eventTimes:
-            print(event)
+        #for event in self.eventTimes:
+            #print(event)
 
+    def get_event_time(day):
+        return self.eventTimes[day]
+    
 class ClassList():
     def __init__(self, studentFile):
         #add number of days in week
@@ -191,6 +236,7 @@ class Reading_Group():
 class Staff_Schedule():
     def __init__(self):
         self.dayCount=0
+        self.maxTimesInOut=0
         self.teacherList=[]
 
     def read_teachers(self, filePath):
@@ -220,11 +266,7 @@ class Staff_Schedule():
         #print(teacherDataList)
         return teacherDataList
         
-    #file i/o functions
-    #maybe this should just be part class above teachers, teacher list teacher schedule?
-    #if so add pattern matching to identify how many in/out times for eac day
-    #def read_teachers(filePath):
-
+    #add pattern matching to identify how many in/out times for eac day
     def teacher_sched(self, teacherTimes):
         #input: list of strings each string lis line from teacher schedule file
         #output list of teacher objects
@@ -235,20 +277,22 @@ class Staff_Schedule():
         #orgainize teacher schedule by teacher or day?  teacher
         #count how many days in schedule and how many in/out times in day from file
         #need to have class set up before this point
-        dayCount=4
-        inOutCount=4
+        
+        #hard coded, need to add functions
+        self.dayCount=4
+        self.maxTimesInOut=2
+        dayCount=self.dayCount
+        inOutCount=self.maxTimesInOut
+
         for line in teacherTimes:
             #list of days, each day is list of in/out lists
             dayList=[]
             name =line.pop(0)
             #list of days, each day is list of time chunks which is list  clockin/out times
-            #hard coded, need to add functions
-            dayCount=4
-            inOutCount=2
+
             #loop for each day
             for i in range(0, dayCount):
                 #each day is list of in/out times
-                #dayList[i]=[]
                 dayList.append([])
                 #get each time that teacher enters/leaves class in one day
                 for j in range(0, inOutCount):
@@ -303,6 +347,10 @@ class Teacher():
                     print(self.schedule[day][inOut][1])
                 inOut= inOut + 1
             day=day + 1
+
+    def get_days_inOuts(self, day):
+        return self.schedule[day]
+
 #class ReadingActivity(filePath):
     #pass
     
@@ -392,6 +440,19 @@ def time_to_min(time):
 #min_to_time(630)
 #min_to_time(870)
 
+# .............................
+# make class schedule parameteres
+# .............................
+# need to add a bit of error handling for bad input
+
+numberOfDays=4
+actPerDay=4
+start1=0
+end1=40
+start2=60
+end2=100
+actDuration=20
+schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, end1, start2, end2)
 
 # ......................
 # test student class 
@@ -408,7 +469,7 @@ student1= Student(testStData)
 #...............................
 
 #csv <name>,<last>,<number> then list[1] == <last>
-filePath='test.csv'
+filePath='students.csv'
 myClassList= ClassList(filePath)
 
 
@@ -423,19 +484,6 @@ myStaff.teacher_sched(teacherSchedLines)
 #myStaff.print_staff()
 
 
-# .............................
-# make class schedule parameteres
-# .............................
-# need to add a bit of error handling for bad input
-
-numberOfDays=4
-actPerDay=4
-start1=0
-end1=40
-start2=60
-end2=100
-actDuration=20
-schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, end1, start2, end2)
 
 #test with extra padding
 numberOfDays=4
@@ -458,5 +506,5 @@ schedParams3= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, 
 # .............................
 # put it all together!!???
 # .............................
-myclassSchedule=Class_Schedule(myStaff, myClassList, schedParams1)
-
+myClassSched=Class_Schedule(myStaff, myClassList, schedParams1)
+myClassSched.make_reading_lessons()
