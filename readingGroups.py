@@ -62,24 +62,35 @@ class Class_Schedule():
     #run teacherEvents through max match algorithm
 
 class Schedule_Parameters():
-    def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
-    #def __init__(self, days, actPerDay, duration):
+    #def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
+    def __init__(self, days, actPerDay, duration):
         self.days=days
         self.actPerDay=actPerDay
         self.duration = duration
         #list of of days, each day is  list of start and stop times
-        self.eventTimes=[]
+        self.dailyEvents=[]
 
-    #def set_events_times(day, start1, end1, start2=None, end2=None)
-         
-        self.start1=start1
-        self.end1= end1
-        self.start2=start2
-        self.end2=end2
+    def set_weeks_eTimes(self, startEndList):
+        #input: list of start and end times for each day of the week
+        #output: list of event times for each day
+        for times in startEndList:
+            start1 = times[0]
+            end1 = times[1]
+            if len(times) > 2:
+                start2= times[2]
+                end2= times[3]
+            else:
+               start2=None
+               end2 =None
+            daysEvents=[]
+            daysEvents= self.set_days_eTimes(start1, end1, start2, end2)
+            self.dailyEvents.append(daysEvents)  
 
+    def set_days_eTimes(self, start1, end1, start2, end2):
+        daysEvents=[]
         event=0
-        periodStart=self.start1
-        periodEnd=self.end1
+        periodStart=start1
+        periodEnd=end1
         actStart=None
         actEnd=None
         nonScheduled=self.actPerDay 
@@ -93,7 +104,9 @@ class Schedule_Parameters():
             startEnd=[]
             startEnd.append(actStart)
             startEnd.append(actEnd)
-            self.eventTimes.append(startEnd)
+
+            daysEvents.append(startEnd)
+
             #update variables for next time through loop
             nonScheduled=nonScheduled-1
             #print('start: ', actStart)
@@ -104,9 +117,9 @@ class Schedule_Parameters():
             periodStart= actEnd           
             actInPeriod=int((periodEnd-periodStart)/self.duration)
              
-        if(nonScheduled and self.start2):
-            periodStart=self.start2
-            periodEnd=self.end2
+        if(nonScheduled and start2):
+            periodStart=start2
+            periodEnd=end2
             actStart=None
             actEnd=None
             
@@ -118,7 +131,7 @@ class Schedule_Parameters():
                 startEnd=[]
                 startEnd.append(actStart)
                 startEnd.append(actEnd)
-                self.eventTimes.append(startEnd)
+                daysEvents.append(startEnd)
                 #update variables for next time through loop
                 nonScheduled=nonScheduled-1
                 #print('start: ', actStart)
@@ -129,13 +142,22 @@ class Schedule_Parameters():
                 periodStart= actEnd           
                 actInPeriod=int((periodEnd-periodStart)/self.duration)
             
-        
         #for event in self.eventTimes:
             #print(event)
-
+        return daysEvents
+        
+    def print_days_eTimes(self):
+        count=0
+        for days in self.dailyEvents:
+            print('day', count)
+            
+    def print_all_eTimes(self):
+        pass
+        
     def get_event_time(day):
-        return self.eventTimes[day]
-    
+        pass 
+
+
 class ClassList():
     def __init__(self, studentFile):
         #add number of days in week
@@ -447,12 +469,46 @@ def time_to_min(time):
 
 numberOfDays=4
 actPerDay=4
+actDuration=20
+schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration)
+
+#set set weeks eTimes
+weekTimes=[]
+
 start1=0
 end1=40
 start2=60
 end2=100
-actDuration=20
-schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, end1, start2, end2)
+dayTimes=[]
+dayTimes.append(start1)
+dayTimes.append(end1)
+dayTimes.append(start2)
+dayTimes.append(end2)
+weekTimes.append(dayTimes)
+
+#test with extra padding
+start1=0
+end1=50
+start2=60
+end2=115
+dayTimes=[]
+dayTimes.append(start1)
+dayTimes.append(end1)
+dayTimes.append(start2)
+dayTimes.append(end2)
+weekTimes.append(dayTimes)
+
+#test with less parameters
+start1=0
+end1=120
+dayTimes=[]
+dayTimes.append(start1)
+dayTimes.append(end1)
+weekTimes.append(dayTimes)
+
+weekTimes.append([0, 40, 60, 100])
+
+schedParams1.set_weeks_eTimes(weekTimes)
 
 # ......................
 # test student class 
@@ -482,25 +538,6 @@ myStaff =Staff_Schedule()
 teacherSchedLines= myStaff.read_teachers('teacher.csv')
 myStaff.teacher_sched(teacherSchedLines)
 #myStaff.print_staff()
-
-
-
-#test with extra padding
-numberOfDays=4
-actPerDay=4
-start1=0
-end1=50
-start2=60
-end2=115
-actDuration=20
-schedParams2= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, end1, start2, end2)
-
-#test with less parameters
-numberOfDays=4
-start1=0
-end1=0
-actDuration=20
-schedParams3= Schedule_Parameters(numberOfDays, actPerDay, actDuration, start1, end1)
 
 
 # .............................
