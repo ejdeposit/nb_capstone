@@ -4,62 +4,153 @@
 #This file contains class data structures to store student information and functions to read that information from a file
 
 #classes
+class Activity():
+    def __init__(self, actType):
+        self.type=actType
+        eventTime=None
+
+class Reading_Group_Activity(Activity):
+    def __init__(self, group, day, actType):
+        super().__init__(actType)
+        self.readingGroup= group  
+        self.readingLevel=None
+        self.day=day
+        
+       # self.groupNumber= groupNumber
+       # self.studentList=[]
+       # self.activityList=[]
+
+    def print_act(self):
+        print('Group: ', self.readingGroup.groupNumber)
+        print('Day: ', self.day)
+        print('Activity Type: ', self.type)
+
 class Event():
-    def __init__(self, day, startStop):
-        self.startStop=startStop
+    def __init__(self, day, start, end, teacher=None):
         self.day= day
+        self.start=start
+        self.end= end
+        self.teacher=teacher 
         #can be either pointer to one student or group of students
         self.students=None
+        self.type="reading group lesson"
 
-class Group_Lesson(Event):
-    def __init__(self, teacher, day, startStop):
-        super().__init__(day, startStop)
-        self.teacher=teacher
-    
-class Class_Schedule():
+    def print_event(self):
+        print()
+        print('Event: ', self.type)
+        if self.teacher:
+            print('Teacher: ', self.teacher.name)
+        print('day: ', self.day)
+        print('Start: ', min_to_time(self.start), 'End: ', min_to_time(self.end))
+
+class Reading_Group_Sched():
     def __init__(self, teacherSchedule, classList, scheduleTimes):
         self.teacherSchedule=teacherSchedule
         self.classList=classList
         #schedule times is schedule_parameters object
-        #change to list of schedule_paramters objects, one for each day
         self.schedParams=scheduleTimes  
-        masterGroupActList=[]
-        masterGroupEventList=[]
-        
-    #generate activity list for each readingGroup 
-    def make_reading_group_act():
-        pass
-
-    def make_reading_lessons(self):
-    #input:self used to access teacher objects
-    #output: creates event, adds it to list for teachers and master events list
+        #dictionary key= day, item list of events on that day
+        self.eventSched={}
+        #dictionary key= day, item list of activities of all groups
+        self.actSched={}
+    
+    def make_group_event(self):
+        """
+        input:self used to access teacher objects
+        output: creates event, adds it to list for teachers and master events list
+        """
         weekLen= self.schedParams.days
+        allEvents=[]
+
+        #interate through teachers
         for teacher in self.teacherSchedule.teacherList:        
-            print(teacher.name)
+            #print(teacher.name)
+
+            #iterate through each day in teachers schedule
             for day in range(0, weekLen):    
-                #function that returns list of in/out times for day
-                times= teacher.get_days_inOuts(day)
-                print('day ', day)
-                print(times)
-                #get length of days
-                #interate over list of inout times`
-                for inOut in times:
-                    if inOut:
-                        print(inOut[0])
-                        print(inOut[1])
-                        #compare in/out times to see if it matches up with events 
-                        #if times matche create event
-                            #create event
-                            #add to teachers list
-                            #add to master list
+                
+                teacherDayEventList=[]
 
-        #go through each groups activity list and add it to master list
+                #get event times for that day from parameters object
+                #get in/out times for that day from teacher class
+                eventTimes= self.schedParams.get_days_eTime(day)               
+                teacherTimes= teacher.get_days_inOuts(day)
+                                
+                # test print e times and teacher times to see if they line up
+                #self.schedParams.print_days_eTimes(day) 
+                #print('day ', day, 'teacher availability')
+                #print(teacherTimes)
 
-        #use schedule Times and teacher schedule to generage reading group events
+                #interate over list of inout times` and comapre to event times for each day
+                for event in eventTimes:
+                    for inOut in teacherTimes:
+                        #if list is not empty
+                        #compare if in time is less than or equal to event start 
+                        #and out time is greater than or equal to event end time
+                        if inOut and inOut[0] <= event[0] and inOut[1]>= event[1]:
+                            #create event make_event(day, start, stop, teacher)
+                            newEvent= Event(day, event[0], event[1], teacher)
+                            
+                            teacherDayEventList.append(newEvent)       
 
-        #add teacher events to masterEventList
+                            #add to master list doesn't have to be function can just append it to 
+                            allEvents.append(newEvent)                            
+                            newEvent.print_event()
+                            
+                #add to teachers list
+                teacher.add_event(teacherDayEventList, day)
+
+        #allEvents not organized by day need separate function
+        self.groupEventList= allEvents                            
+
+    def add_events(self, eventList):
+    #input: list of events
+    #output: dictionary of events by day
+    #function interates through list of events makes list for each day, list is not organized, just for max match
+        for event in eventList:
+            if event.day in self.eventSched:
+                self.eventSched[event.day].append(event)
+            else:
+                self.eventSched[evend.day]= []
+                self.eventSched[event.day].append(event)
+             
+    #generate activity list for each readingGroup 
+    def make_group_act(self):
+        weekLen= self.schedParams.days
+        classActList=[]
+
+        for group in self.classList.readingGroupList:
+            groupActList=[]
+
+            for day in range(0, weekLen):
+                #reading_group_Act(self, group, day, actType):
+                newAct= Reading_Group_Activity(group, day, 'Small Group Lesson')
+                newAct.print_act()         
+                #add each act to groups list and sched act list for maxMatch
+                groupActList.append(newAct)
+                classActList.append(newAct)
+
+            #add group act list to group class object. in group function add it to each stuent too
+            group.add_actList(groupActList)  
+       
+        #add group act list to class if keeping as a list instead of dictionary by day 
+        self.add_act_list(classActList)
+
+    
+    def add_act_list(self, classActList):
+    #input: unordered list of all activities created for every group
+    #output: add activities to Reading Group sched.actSched by day
+        for activity in classActList:
+            if activity.day in self.actSched:
+                self.actSched[activity.day].append(activity)
+            else:
+                self.actSched[activity.day]=[]
+                self.actSched[activity.day].append(activity)
 
     #run teacherEvents through max match algorithm
+    def max_match():
+        pass
+       
 
 class Schedule_Parameters():
     #def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
@@ -69,6 +160,9 @@ class Schedule_Parameters():
         self.duration = duration
         #list of of days, each day is  list of start and stop times
         self.dailyEvents=[]
+
+    def week_len(self):
+        return self.days
 
     def set_weeks_eTimes(self, startEndList):
         #input: list of start and end times for each day of the week
@@ -146,19 +240,29 @@ class Schedule_Parameters():
             #print(event)
         return daysEvents
         
-    def print_days_eTimes(self):
-        count=0
-        for days in self.dailyEvents:
-            print('day', count)
-            
+    def print_days_eTimes(self, day):
+        """
+        input: day that exist in list of events times for each day in schedule
+        output: void, prints list of events on that day
+        """
+        print('day', day, 'event times')
+        if(self.dailyEvents[day]):
+            print(self.dailyEvents[day])
+        else:
+            print('list empty')
+
     def print_all_eTimes(self):
-        pass
+        print('All events times for week')
+        print(self.dailyEvents)
         
-    def get_event_time(day):
-        pass 
+    def get_days_eTime(self, day):
+        """
+        input day 
+        output list of n elements, each element is list of start and stop time of that  event  
+        """
+        return self.dailyEvents[day]
 
-
-class ClassList():
+class Class_List():
     def __init__(self, studentFile):
         #add number of days in week
         #start and stop times
@@ -230,12 +334,20 @@ class Student():
         self.last= studentData[1]
         self.readingLevel= int(studentData[2])
         self.groupNumber= int(studentData[2])
-
-        self.activityList= [] 
+        self.actSched= {} 
+        
+    def add_group_act(self, groupActList):
+        for activity in groupActList:
+            if activity.day in self.actSched:
+                self.actSched[activity.day].append(activity)
+            else:
+                self.actSched[activity.day]=[]
+                self.actSched[activity.day].append(activity)
 
     def print_student(self):
         print('{} {} {} {} {}'.format('student: ', self.first, self.last, 'reading level: ', self.readingLevel))
 
+    
 
 class Reading_Group():   
     def __init__(self, groupNumber):
@@ -254,6 +366,15 @@ class Reading_Group():
                 student.print_student()
         else:
             print('no students in group')
+
+    def add_actList(self, groupActList):
+        #input list of readingGroup activities for group
+        #output add list to groups act list and to each students sched
+        self.activityList=groupActList
+       
+        for student in self.studentList: 
+            student.add_group_act(groupActList)
+             
 
 class Staff_Schedule():
     def __init__(self):
@@ -344,18 +465,20 @@ class Staff_Schedule():
                         #print('In: ', dayList[i][j][0])
                         #print('Out: ', dayList[i][j][1])
           
-            self.teacherList.append(Teacher(name, dayList))
+            self.teacherList.append(Teacher(name, dayList, dayCount))
         return
         
     def print_staff(self):
-       print('print staff function')
-       for teacher in self.teacherList:
+        print('print staff function')
+        for teacher in self.teacherList:
             teacher.print_teacher()
             
 class Teacher():
-    def __init__(self, name, schedule):
-       self.name=name
-       self.schedule=schedule
+    def __init__(self, name, schedule, weekLen):
+        self.name=name
+        self.schedule=schedule
+        #dictionary is schedule with day as key and list of lesson events as item
+        self.lessonEventSched={}
     
     def print_teacher(self):
         print(self.name)
@@ -373,19 +496,15 @@ class Teacher():
     def get_days_inOuts(self, day):
         return self.schedule[day]
 
-#class ReadingActivity(filePath):
-    #pass
-    
-
-
+    def add_event(self, eventList, day):
+        self.lessonEventSched[day]=eventList    
+         
 def min_to_time(minTime):
-    print()
-    print('time= ', minTime)
 
     minutes=minTime%60
     hour=int(minTime/60)
-    print('hour= ', hour)
-    print('minutes= ', minutes)
+    #print('hour= ', hour)
+    #print('minutes= ', minutes)
     
     if hour == 12:
         timeOfDay='PM'
@@ -396,7 +515,7 @@ def min_to_time(minTime):
         timeOfDay='AM'    
     
     time=str(hour) + ':' + str(minutes) + ' ' + timeOfDay
-    print('time= ', time)
+    #print('time= ', time)
     return time 
 
 def time_to_min(time):
@@ -475,40 +594,29 @@ schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration)
 #set set weeks eTimes
 weekTimes=[]
 
-start1=0
-end1=40
-start2=60
-end2=100
-dayTimes=[]
-dayTimes.append(start1)
-dayTimes.append(end1)
-dayTimes.append(start2)
-dayTimes.append(end2)
-weekTimes.append(dayTimes)
+for i in range(0, 4):
+    start1=time_to_min('11:15')
+    end1=time_to_min('11:55')
+    start2=time_to_min('12:40')
+    end2=time_to_min('1:20')
+    dayTimes=[]
+    dayTimes.append(start1)
+    dayTimes.append(end1)
+    dayTimes.append(start2)
+    dayTimes.append(end2)
+    weekTimes.append(dayTimes)
 
 #test with extra padding
-start1=0
-end1=50
-start2=60
-end2=115
-dayTimes=[]
-dayTimes.append(start1)
-dayTimes.append(end1)
-dayTimes.append(start2)
-dayTimes.append(end2)
-weekTimes.append(dayTimes)
-
 #test with less parameters
-start1=0
-end1=120
-dayTimes=[]
-dayTimes.append(start1)
-dayTimes.append(end1)
-weekTimes.append(dayTimes)
-
-weekTimes.append([0, 40, 60, 100])
+#start1=time_to_min('11:15')
+#end1=time_to_min('11:55')
+#dayTimes=[]
+#dayTimes.append(start1)
+#dayTimes.append(end1)
+#weekTimes.append(dayTimes)
 
 schedParams1.set_weeks_eTimes(weekTimes)
+#schedParams1.print_all_eTimes()
 
 # ......................
 # test student class 
@@ -526,8 +634,7 @@ student1= Student(testStData)
 
 #csv <name>,<last>,<number> then list[1] == <last>
 filePath='students.csv'
-myClassList= ClassList(filePath)
-
+myClassList= Class_List(filePath)
 
 # .................................
 # make teacher clas and schedule
@@ -535,7 +642,7 @@ myClassList= ClassList(filePath)
 
 teacherSchedLines=[]
 myStaff =Staff_Schedule()
-teacherSchedLines= myStaff.read_teachers('teacher.csv')
+teacherSchedLines= myStaff.read_teachers('teacher2.csv')
 myStaff.teacher_sched(teacherSchedLines)
 #myStaff.print_staff()
 
@@ -543,5 +650,8 @@ myStaff.teacher_sched(teacherSchedLines)
 # .............................
 # put it all together!!???
 # .............................
-myClassSched=Class_Schedule(myStaff, myClassList, schedParams1)
-myClassSched.make_reading_lessons()
+readingGroupSched1=Reading_Group_Sched(myStaff, myClassList, schedParams1)
+readingGroupSched1.make_group_event()
+readingGroupSched1.make_group_act()
+print(min_to_time(795))
+print(time_to_min(min_to_time(795)))
