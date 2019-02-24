@@ -3,8 +3,27 @@
 #capstone
 #This file contains class data structures to store student information and functions to read that information from a file
 
+# ----------------------------------------------------------------------------------------------------------------------------------
+#                                                       $match
+# ----------------------------------------------------------------------------------------------------------------------------------
+
+class Vertex(): 
+#vertex will be parent class of reading activities and scheduled events classes
+    def __init__(self):
+        self.num=None 
+        self.label=None 
+        self.mate=None       
+
+    def print_vertex(self):
+        print(self.num, end=' ')
+
+# ----------------------------------------------------------------------------------------------------------------------
+#                                                           $sched
+# ---------------------------------------------------------------------------------------------------------------------
+
+
 #classes
-class Activity():
+class Activity(Vertex):
     def __init__(self, actType):
         self.type=actType
         eventTime=None
@@ -102,6 +121,7 @@ class Reading_Group_Sched():
 
         #allEvents not organized by day need separate function
         self.groupEventList= allEvents                            
+        self.add_events(allEvents)
 
     def add_events(self, eventList):
     #input: list of events
@@ -111,7 +131,7 @@ class Reading_Group_Sched():
             if event.day in self.eventSched:
                 self.eventSched[event.day].append(event)
             else:
-                self.eventSched[evend.day]= []
+                self.eventSched[event.day]= []
                 self.eventSched[event.day].append(event)
              
     #generate activity list for each readingGroup 
@@ -147,10 +167,98 @@ class Reading_Group_Sched():
                 self.actSched[activity.day]=[]
                 self.actSched[activity.day].append(activity)
 
+    
+
+       
+
+    def add_teacher_pref(self):
+        str1= 'For each staff member, enter the group number of each group that may be scheduled with the staff member'
+        str2= 'separating each group number with a spae and entering return when finished'
+        str3= 'If all groups may be scheduled with the staff member, enter all'
+        
+        GroupsNumbers=[]
+        
+        print('{} {} {}'.format(str1, str2, str3))
+
+        for teacher in self.teacherSchedule.teacherList:
+
+            #remove break when finished testing
+            break
+
+            groupPref=[]
+            
+            line=input(teacher.name +': ')
+            if 'all' in line or 'All' in line:
+                #add group pref to teacher
+                allGroups= self.classList.numOfGroups
+                for i in range(1, allGroups+1):
+                    groupPref.append(i)
+            else:
+                numList=line.split(' ')
+                for numStr in numList:
+                    isNumber= re.match('^\d+$', numStr)
+                    if isNumber:
+                        num= int(numStr)
+                        groupPref.append(num) 
+                #add group pef to teacher     
+            teacher.groupPref=groupPref    
+            print(groupPref)
+            
+        #hard code teacher pref for repeated testing
+        self.teacherSchedule.teacherList[0].groupPref= [1,2,3]
+        self.teacherSchedule.teacherList[1].groupPref= [1,2,3]
+        self.teacherSchedule.teacherList[2].groupPref= [3]
+        
+        #for teacher in self.teacherSchedule.teacherList:
+            #print(teacher.name, teacher.groupPref)
+
+
+    def set_edges(self):
+        vertexCount=0
+        weekLen=self.schedParams.days
+        edgeList={}
+        print('days in week= ', weekLen)
+
+        print('event keys:', self.eventSched.keys())
+        print('act keys:', self.actSched.keys())
+
+        #number vertexes
+        for i in range(0, weekLen):
+            for event in self.eventSched[i]:
+                event.num=vertexCount      
+                vertexCount= vertexCount+1
+                
+        for i in range(0, weekLen):
+            for act in self.actSched[i]:
+                act.num=vertexCount      
+                vertexCount= vertexCount+1
+       
+        for teacher in self.teacherSchedule.teacherList:
+            pref= teacher.groupPref
+            for day in range(0, weekLen):
+                for event in teacher.lessonEventSched[day]:
+                    for act in self.actSched[day]:
+                        if act.readingGroup.groupNumber in pref:
+                            if act.num in edgeList:
+                                edgeList[act.num].append(event)
+                            else:
+                                edgeList[act.num]=[]
+                                edgeList[act.num].append(event)
+                            if event.num in edgeList:
+                                edgeList[event.num].append(act)
+                            else:
+                                edgeList[event.num]=[]
+                                edgeList[event.num].append(act)
+
+                            print('match')
+                            act.print_act()
+                            event.print_event()
+                            print()
+                            
+                            
     #run teacherEvents through max match algorithm
     def max_match():
         pass
-       
 
 class Schedule_Parameters():
     #def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
@@ -262,12 +370,86 @@ class Schedule_Parameters():
         """
         return self.dailyEvents[day]
 
+def min_to_time(minTime):
+
+    minutes=minTime%60
+    hour=int(minTime/60)
+    #print('hour= ', hour)
+    #print('minutes= ', minutes)
+    
+    if hour == 12:
+        timeOfDay='PM'
+    elif hour > 12:
+        timeOfDay='PM'
+        hour= hour-12
+    else:
+        timeOfDay='AM'    
+    
+    time=str(hour) + ':' + str(minutes) + ' ' + timeOfDay
+    #print('time= ', time)
+    return time 
+
+def time_to_min(time):
+    #input time as string
+    #output time as minutes
+    #test cases
+    minutes=999 
+
+    fields= time.split(':')
+    #print()
+    #print(fields)
+    
+    #get hour first
+    hourStr=fields.pop(0)
+    hour=int(hourStr)
+
+    #start by getting time of day from last string in list iff there at all
+    if (('am' in fields[-1]) or ('AM' in fields[-1])):
+        #print('its morning')
+        timeOfDay= 0
+    elif(('pm' in fields[-1]) or ('PM' in fields[-1]) and (hour !=12)):
+        #print("it's the afternoon")
+        #time of day equals minutes that happened in morning that need to be added
+        timeOfDay=720
+    else:
+        #print('no time of day info in string')
+        timeOfDay=None 
+        
+    minStr=fields.pop(0)
+
+    #print('hour string= ', hourStr)
+    #print('minutes string= ', minStr)
+    #if timeOfDay is not None:
+        #print('time of day: ', timeOfDay)
+    
+    #get numbers from sting
+    minutes= int(minStr[:2:])
+
+    #print('hour int=', hour)
+    #print('minutes int= ', minutes)
+    #print('remaining minutes', minStr)
+    if timeOfDay is None:
+        if(hour >=1 and hour< 7):
+            minutes= ((hour +12)*60)+ minutes
+        else:
+            minutes= (hour*60)+minutes
+    else:
+        minutes =(60 * hour) + minutes + timeOfDay
+
+    #print('total minutes', minutes)
+    return minutes
+
+# -------------------------------------------------------------------------------------------------------------------
+#                                                      $student
+# -----------------------------------------------------------------------------------------------------------------
+
 class Class_List():
     def __init__(self, studentFile):
         #add number of days in week
         #start and stop times
         self.studentList=[]
         self.readingGroupList=[]
+        self.numOfGroups=0
         
         studentData= self.read_stu_file(studentFile)
         
@@ -280,12 +462,13 @@ class Class_List():
         for student in self.studentList:        
             if student.groupNumber > maxGroupNum:
                 maxGroupNum= student.groupNumber
+        self.numOfGroups=maxGroupNum
         #print('max group number', maxGroupNum)
 
-        #initialize reading group for each level
+        #initialize reading group for each level, is there a readingGroup zero with no students
         for i in range(0, maxGroupNum+1):
             self.readingGroupList.append(Reading_Group(i))
-
+            
         #add each student to reading list
         for student in self.studentList:
             self.readingGroupList[student.groupNumber].add_student_to_group(student)
@@ -328,26 +511,6 @@ class Class_List():
         fin.close()
         return classData    
 
-class Student():
-    def __init__(self, studentData):
-        self.first= studentData[0]
-        self.last= studentData[1]
-        self.readingLevel= int(studentData[2])
-        self.groupNumber= int(studentData[2])
-        self.actSched= {} 
-        
-    def add_group_act(self, groupActList):
-        for activity in groupActList:
-            if activity.day in self.actSched:
-                self.actSched[activity.day].append(activity)
-            else:
-                self.actSched[activity.day]=[]
-                self.actSched[activity.day].append(activity)
-
-    def print_student(self):
-        print('{} {} {} {} {}'.format('student: ', self.first, self.last, 'reading level: ', self.readingLevel))
-
-    
 
 class Reading_Group():   
     def __init__(self, groupNumber):
@@ -374,7 +537,30 @@ class Reading_Group():
        
         for student in self.studentList: 
             student.add_group_act(groupActList)
-             
+
+
+class Student():
+    def __init__(self, studentData):
+        self.first= studentData[0]
+        self.last= studentData[1]
+        self.readingLevel= int(studentData[2])
+        self.groupNumber= int(studentData[2])
+        self.actSched= {} 
+        
+    def add_group_act(self, groupActList):
+        for activity in groupActList:
+            if activity.day in self.actSched:
+                self.actSched[activity.day].append(activity)
+            else:
+                self.actSched[activity.day]=[]
+                self.actSched[activity.day].append(activity)
+
+    def print_student(self):
+        print('{} {} {} {} {}'.format('student: ', self.first, self.last, 'reading level: ', self.readingLevel))
+
+#-------------------------------------------------------------------------------------------------------------------------------    
+#                                                         $teacher
+# -----------------------------------------------------------------------------------------------------------------------------             
 
 class Staff_Schedule():
     def __init__(self):
@@ -473,12 +659,14 @@ class Staff_Schedule():
         for teacher in self.teacherList:
             teacher.print_teacher()
             
+
 class Teacher():
     def __init__(self, name, schedule, weekLen):
         self.name=name
         self.schedule=schedule
         #dictionary is schedule with day as key and list of lesson events as item
         self.lessonEventSched={}
+        self.groupPref=[]
     
     def print_teacher(self):
         print(self.name)
@@ -499,75 +687,10 @@ class Teacher():
     def add_event(self, eventList, day):
         self.lessonEventSched[day]=eventList    
          
-def min_to_time(minTime):
-
-    minutes=minTime%60
-    hour=int(minTime/60)
-    #print('hour= ', hour)
-    #print('minutes= ', minutes)
-    
-    if hour == 12:
-        timeOfDay='PM'
-    elif hour > 12:
-        timeOfDay='PM'
-        hour= hour-12
-    else:
-        timeOfDay='AM'    
-    
-    time=str(hour) + ':' + str(minutes) + ' ' + timeOfDay
-    #print('time= ', time)
-    return time 
-
-def time_to_min(time):
-    #input time as string
-    #output time as minutes
-    #test cases
-    minutes=999 
-
-    fields= time.split(':')
-    #print()
-    #print(fields)
-    
-    #get hour first
-    hourStr=fields.pop(0)
-    hour=int(hourStr)
-
-    #start by getting time of day from last string in list iff there at all
-    if (('am' in fields[-1]) or ('AM' in fields[-1])):
-        #print('its morning')
-        timeOfDay= 0
-    elif(('pm' in fields[-1]) or ('PM' in fields[-1]) and (hour !=12)):
-        #print("it's the afternoon")
-        #time of day equals minutes that happened in morning that need to be added
-        timeOfDay=720
-    else:
-        #print('no time of day info in string')
-        timeOfDay=None 
-        
-    minStr=fields.pop(0)
-
-    #print('hour string= ', hourStr)
-    #print('minutes string= ', minStr)
-    #if timeOfDay is not None:
-        #print('time of day: ', timeOfDay)
-    
-    #get numbers from sting
-    minutes= int(minStr[:2:])
-
-    #print('hour int=', hour)
-    #print('minutes int= ', minutes)
-    #print('remaining minutes', minStr)
-    if timeOfDay is None:
-        if(hour >=1 and hour< 7):
-            minutes= ((hour +12)*60)+ minutes
-        else:
-            minutes= (hour*60)+minutes
-    else:
-        minutes =(60 * hour) + minutes + timeOfDay
-
-    #print('total minutes', minutes)
-    return minutes
-
+# ---------------------------------------------------------------------------------------------------------------------------
+#                                                                   $main
+# ---------------------------------------------------------------------------------------------------------------------------
+import re
 #.........................................
 #turn times from 12 to 24 then to decimal
 #.........................................
@@ -644,6 +767,7 @@ teacherSchedLines=[]
 myStaff =Staff_Schedule()
 teacherSchedLines= myStaff.read_teachers('teacher2.csv')
 myStaff.teacher_sched(teacherSchedLines)
+
 #myStaff.print_staff()
 
 
@@ -653,5 +777,5 @@ myStaff.teacher_sched(teacherSchedLines)
 readingGroupSched1=Reading_Group_Sched(myStaff, myClassList, schedParams1)
 readingGroupSched1.make_group_event()
 readingGroupSched1.make_group_act()
-print(min_to_time(795))
-print(time_to_min(min_to_time(795)))
+readingGroupSched1.add_teacher_pref()
+readingGroupSched1.set_edges()
