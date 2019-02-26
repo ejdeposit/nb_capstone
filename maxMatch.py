@@ -142,18 +142,25 @@ u9= vertex(9)
 U= list()
 U= [u5, u6, u7, u8, u9]
 
+U= [u5, u6, u7, u8]
+
+# ------------------------------# 
 #Edge list
-#E=[[5,6], [5], [5, 7], [7, 8, 9], [8, 9], [0, 1, 2], [0], [2, 3], [3, 4], [3, 4]]
-#E=[[u5,u6], [u5], [u5, u7], [u7, u8, u9], [u8, u9], [v0, v1, v2], [v0], [v2, v3], [v3, v4], [v3, v4]]
+# ------------------------------# 
+
+#full endge list
 E= {0:[u5,u6], 1:[u5], 2:[u5, u7], 3:[u7, u8, u9], 4:[u8, u9], 5:[v0, v1, v2], 6:[v0], 7:[v2, v3], 8:[v3, v4], 9:[v3, v4] }
 
+#test with one less vertex.  U - u9
+E= {0:[u5,u6], 1:[u5], 2:[u5, u7], 3:[u7, u8], 4:[u8], 5:[v0, v1, v2], 6:[v0], 7:[v2, v3], 8:[v3, v4]}
+
 #class members not privagte can be changed or accessed outside of class
-v3.mate=u7
-u7.mate=v3
-v4.mate=u9
-u9.mate=v4
-v0.mate=u6
-u6.mate=v0
+#v3.mate=u7
+#u7.mate=v3
+#v4.mate=u9
+#u9.mate=v4
+#v0.mate=u6
+#u6.mate=v0
 
 
 #make graph with and print to make sure class constructors work

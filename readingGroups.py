@@ -7,6 +7,113 @@
 #                                                       $match
 # ----------------------------------------------------------------------------------------------------------------------------------
 
+class Graph():
+    def __init__(self):
+        self.queue=[]
+        self.U=None
+        self.V=None
+        self.E=None
+        self.unionVU=[]
+
+        #for vertex in U:
+            #self.unionVU.insert(vertex.num, vertex)    
+
+        #for vertex in V:
+            #self.unionVU.insert(vertex.num, vertex)    
+    
+
+    def print_matches(self):
+        print('vetex->mate')
+        for vertex in self.unionVU:
+            if (vertex.mate):
+                print('{} {} {} {} {}'.format('v', vertex.num, '->', vertex.mate.num, '  '))
+            else:
+                print('{} {} {} {} {}'.format('v', vertex.num, '->', 'N', '  '))
+        print('')
+
+    def print_queue(self):
+        print('queue: ', end='') 
+        for v in self.queue:
+            v.print_vertex()
+        print('')
+
+    def print_set(self, part):
+        print('set ', end='') 
+        for v in part:
+            v.print_vertex()
+        print('')
+    
+    def init_queue(self):
+        self.queue=[]
+        for vertex in self.V:
+            if vertex.mate is None:
+                self.queue.append(vertex)
+
+    def remove_labels(self):
+        for vertex in self.V:
+            vertex.label=None
+        for vertex in self.U:
+            vertex.label=None
+
+    def print_debug(self, loc):
+        print('{} {}'.format(loc, 'vetex->mate'))
+        for vertex in self.unionVU:
+            if (vertex.mate):
+                print('{} {} {} {}'.format(vertex.num, '->', vertex.mate.num, '  '))
+            else:
+                print('{} {} {} {}'.format(vertex.num, '->', 'N', '  '))
+        print('')
+
+    def max_match(self):
+    # Maximum Matching in Bipartite Graph Algorithm
+    # the purpose of this function is to match up teachers with reading groups.
+    # another function will generate edges based on times the teacher is available
+    #and which reading levels they can work with
+        self.init_queue()
+        while self.queue:
+            w= self.queue.pop(0)
+            #change to my own search function if time
+            if w in self.V:
+                for u in self.E[w.num]:
+                    #if u is free in list of vertices connected to w
+                    if u.mate is None:
+                        w.mate=u
+                        u.mate=w
+                        #following labeling, umatching, etc will take place after finding last free 
+                        v=w
+                        while(v.label is not None):
+                            u=v.label
+                            if((u.mate == v) and (v.mate== u)):
+                                v.mate=None
+                                u.mate=None
+                            v=u.label
+                            v.mate=u
+                            u.mate=v
+                        self.remove_labels()
+                        self.init_queue()
+                        #break from for loop because at end of traversal
+                        break
+                    else:
+                        if((w.mate != u) and (u.mate != w) and (u.label is None)):
+                            u.label= w
+                            self.queue.append(u)
+            #else: w in U and matched
+            else:
+                #label the mate v of w with "w"
+                w.mate.label= w                            
+                #enqueue(Q, v) v as in mate v of w?
+                self.queue.append(w.mate)
+        return
+
+
+    def foo(self):
+        print('foo')
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+#                                                           $act $event $vertex
+# ---------------------------------------------------------------------------------------------------------------------
+
 class Vertex(): 
 #vertex will be parent class of reading activities and scheduled events classes
     def __init__(self):
@@ -17,9 +124,6 @@ class Vertex():
     def print_vertex(self):
         print(self.num, end=' ')
 
-# ----------------------------------------------------------------------------------------------------------------------
-#                                                           $sched
-# ---------------------------------------------------------------------------------------------------------------------
 
 
 #classes
@@ -68,8 +172,14 @@ class Event(Vertex):
         if self.num:
             print('vertex number: ', self.num)
 
-class Reading_Group_Sched():
+
+# ----------------------------------------------------------------------------------------------------------------------
+#                                                           $sched
+# ---------------------------------------------------------------------------------------------------------------------
+
+class Reading_Group_Sched(Graph):
     def __init__(self, teacherSchedule, classList, scheduleTimes):
+        super().__init__()
         self.teacherSchedule=teacherSchedule
         self.classList=classList
         #schedule times is schedule_parameters object
@@ -78,7 +188,25 @@ class Reading_Group_Sched():
         self.eventSched={}
         #dictionary key= day, item list of activities of all groups
         self.actSched={}
-    
+
+    def print_group_teacher(self):
+        weekLen= self.schedParams.days
+
+        for group in self.classList.readingGroupList:
+            print('Group', group.groupNumber, 'Activity Event Match')
+            for act in group.activityList:
+                act.print_act()
+                print()
+                if act.mate:
+                    act.mate.print_event()
+                else:
+                    print('NO MATCH')
+                print()
+                print()
+            print()
+            print()
+            print()
+
     def make_group_event(self):
         """
         input:self used to access teacher objects
@@ -126,8 +254,10 @@ class Reading_Group_Sched():
                 teacher.add_event(teacherDayEventList, day)
 
         #allEvents not organized by day need separate function
-        self.groupEventList= allEvents                            
+        #self.groupEventList= allEvents                            
         self.add_events(allEvents)
+        self.V= allEvents
+        
 
     def add_events(self, eventList):
     #input: list of events
@@ -159,10 +289,13 @@ class Reading_Group_Sched():
             #add group act list to group class object. in group function add it to each stuent too
             group.add_actList(groupActList)  
        
-        #add group act list to class if keeping as a list instead of dictionary by day 
+        #add group act list to class schedule (dictionary day:actList) if keeping as a list instead of dictionary by day 
         self.add_act_list(classActList)
+        
+        #add group act to set u in graph class
+        self.U= classActList 
 
-    
+
     def add_act_list(self, classActList):
     #input: unordered list of all activities created for every group
     #output: add activities to Reading Group sched.actSched by day
@@ -171,11 +304,7 @@ class Reading_Group_Sched():
                 self.actSched[activity.day].append(activity)
             else:
                 self.actSched[activity.day]=[]
-                self.actSched[activity.day].append(activity)
 
-    
-
-       
 
     def add_teacher_pref(self):
         str1= 'For each staff member, enter the group number of each group that may be scheduled with the staff member'
@@ -256,12 +385,8 @@ class Reading_Group_Sched():
                             #act.print_act()
                             #event.print_event()
                             #print()
+            self.E=edgeList                    
                             
-                            
-    #run teacherEvents through max match algorithm
-    def max_match():
-        pass
-
 class Schedule_Parameters():
     #def __init__(self, days, actPerDay, duration, start1, end1, start2=None, end2=None):
     def __init__(self, days, actPerDay, duration):
@@ -731,7 +856,8 @@ class Teacher():
 # ---------------------------------------------------------------------------------------------------------------------------
 #                                                                   $main
 # ---------------------------------------------------------------------------------------------------------------------------
-import re
+
+
 #.........................................
 #turn times from 12 to 24 then to decimal
 #.........................................
@@ -800,6 +926,13 @@ student1= Student(testStData)
 filePath='students.csv'
 myClassList= Class_List(filePath)
 
+count=0
+for group in myClassList.readingGroupList:
+    print('loop= ', count)
+    if group:
+        print('Group Number', group.groupNumber)
+        print(group.studentList) 
+    count=+1
 # .................................
 # make teacher clas and schedule
 # .................................
@@ -820,6 +953,13 @@ readingGroupSched1.make_group_event()
 readingGroupSched1.make_group_act()
 readingGroupSched1.add_teacher_pref()
 readingGroupSched1.set_edges()
+
+#makes matches
+readingGroupSched1.unionVU= readingGroupSched1.V + readingGroupSched1.U
+#why are none objects appearing in vertex list?
+readingGroupSched1.max_match()
+readingGroupSched1.print_group_teacher()
+readingGroupSched1.print_matches()
 
 # .............................
 #          make free list
