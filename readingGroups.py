@@ -25,6 +25,7 @@ class Vertex():
 #classes
 class Activity(Vertex):
     def __init__(self, actType):
+        super().__init__()
         self.type=actType
         eventTime=None
 
@@ -43,16 +44,19 @@ class Reading_Group_Activity(Activity):
         print('Group: ', self.readingGroup.groupNumber)
         print('Day: ', self.day)
         print('Activity Type: ', self.type)
+        if self.num:
+            print('vertex number: ', self.num)
 
-class Event():
-    def __init__(self, day, start, end, teacher=None):
+class Event(Vertex):
+    def __init__(self, day, start, end, eventType, teacher=None):
+        super().__init__()
         self.day= day
         self.start=start
         self.end= end
         self.teacher=teacher 
         #can be either pointer to one student or group of students
+        self.type=eventType
         self.students=None
-        self.type="reading group lesson"
 
     def print_event(self):
         print()
@@ -61,6 +65,8 @@ class Event():
             print('Teacher: ', self.teacher.name)
         print('day: ', self.day)
         print('Start: ', min_to_time(self.start), 'End: ', min_to_time(self.end))
+        if self.num:
+            print('vertex number: ', self.num)
 
 class Reading_Group_Sched():
     def __init__(self, teacherSchedule, classList, scheduleTimes):
@@ -108,13 +114,13 @@ class Reading_Group_Sched():
                         #and out time is greater than or equal to event end time
                         if inOut and inOut[0] <= event[0] and inOut[1]>= event[1]:
                             #create event make_event(day, start, stop, teacher)
-                            newEvent= Event(day, event[0], event[1], teacher)
+                            newEvent= Event(day, event[0], event[1], "Small Group Lesson", teacher)
                             
                             teacherDayEventList.append(newEvent)       
 
                             #add to master list doesn't have to be function can just append it to 
                             allEvents.append(newEvent)                            
-                            newEvent.print_event()
+                            #newEvent.print_event()
                             
                 #add to teachers list
                 teacher.add_event(teacherDayEventList, day)
@@ -145,7 +151,7 @@ class Reading_Group_Sched():
             for day in range(0, weekLen):
                 #reading_group_Act(self, group, day, actType):
                 newAct= Reading_Group_Activity(group, day, 'Small Group Lesson')
-                newAct.print_act()         
+                #newAct.print_act()         
                 #add each act to groups list and sched act list for maxMatch
                 groupActList.append(newAct)
                 classActList.append(newAct)
@@ -217,10 +223,6 @@ class Reading_Group_Sched():
         vertexCount=0
         weekLen=self.schedParams.days
         edgeList={}
-        print('days in week= ', weekLen)
-
-        print('event keys:', self.eventSched.keys())
-        print('act keys:', self.actSched.keys())
 
         #number vertexes
         for i in range(0, weekLen):
@@ -250,10 +252,10 @@ class Reading_Group_Sched():
                                 edgeList[event.num]=[]
                                 edgeList[event.num].append(act)
 
-                            print('match')
-                            act.print_act()
-                            event.print_event()
-                            print()
+                            #print('match')
+                            #act.print_act()
+                            #event.print_event()
+                            #print()
                             
                             
     #run teacherEvents through max match algorithm
@@ -511,6 +513,9 @@ class Class_List():
         fin.close()
         return classData    
 
+    def make_free_list(self, eventTimes, weekLen):
+        for student in self.studentList:
+            student.make_free_list(eventTimes, weekLen)
 
 class Reading_Group():   
     def __init__(self, groupNumber):
@@ -545,7 +550,9 @@ class Student():
         self.last= studentData[1]
         self.readingLevel= int(studentData[2])
         self.groupNumber= int(studentData[2])
-        self.actSched= {} 
+        self.actSched={} 
+        self.eventSched={} 
+        self.freeList={}
         
     def add_group_act(self, groupActList):
         for activity in groupActList:
@@ -558,6 +565,40 @@ class Student():
     def print_student(self):
         print('{} {} {} {} {}'.format('student: ', self.first, self.last, 'reading level: ', self.readingLevel))
 
+    def make_free_list(self, eventTimes, weekLen):
+
+        for day in range(0, weekLen):
+            dayFreeList=[]
+            #needs to have conditional if no events scheduled
+            #print(self.eventSched[day])
+
+            #if no events planned on day
+            if day not in self.eventSched:
+                for startEnd in eventTimes:
+                    newFreeEvent= Event(day, startEnd[0], startEnd[1], 'Free List Event')
+                    dayFreeList.append(newFreeEvent)
+                #add freelist to hash table for specified day 
+                self.freeList[day]=dayFreeList 
+            
+            else:
+                for startEnd in eventTimes:
+                    noEvent=True
+                    for event in self.eventSched[day]:
+                        if event.start == startEnd[0]:
+                            noEvent=False
+                    if noEvent:
+                        newFreeEvent= Event(day, startEnd[0], startEnd[1], 'Free List Event')
+                        dayFreeList.append(newFreeEvent)
+                #add to freelist for to day to hash table
+                self.freeList[day]=dayFreeList 
+   
+    def print_freeList(self, day, weekLen):
+        #print('Day', day, 'Free List: ')
+        if day in freeList:
+            for event in freeList[day]:
+                event.print_event()
+        else:
+            print('No Free List Events')
 #-------------------------------------------------------------------------------------------------------------------------------    
 #                                                         $teacher
 # -----------------------------------------------------------------------------------------------------------------------------             
@@ -779,3 +820,10 @@ readingGroupSched1.make_group_event()
 readingGroupSched1.make_group_act()
 readingGroupSched1.add_teacher_pref()
 readingGroupSched1.set_edges()
+
+# .............................
+#          make free list
+# .............................
+#print(schedParams1.dailyEvents)
+myClassList.make_free_list(schedParams1.dailyEvents, numberOfDays)
+
