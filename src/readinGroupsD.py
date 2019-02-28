@@ -148,9 +148,10 @@ class Reading_Group_Activity(Activity):
         print('Group: ', self.readingGroup.groupNumber)
         print('Day: ', self.day)
         print('Activity Type: ', self.type)
-        if self.num:
-            print('vertex number: ', self.num)
-
+        #if self.num:
+        #    print('vertex number: ', self.num)
+        print('vertex number: ', self.num)
+    
 class Event(Vertex):
     def __init__(self, day, start, end, eventType, teacher=None):
         super().__init__()
@@ -192,9 +193,10 @@ class Reading_Group_Sched(Graph):
     def print_group_teacher(self):
         weekLen= self.schedParams.days
 
-        for group in self.classList.readingGroupList:
-            print('Group', group.groupNumber, 'Activity Event Match')
-            for act in group.activityList:
+        for groupNumber in self.classList.groupNumberList:
+            self.classList.readingGroups[groupNumber]
+            print('Group', self.classList.readingGroups[groupNumber].groupNumber, 'Activity Event Match')
+            for act in self.classList.readingGroups[groupNumber].activityList:
                 act.print_act()
                 print()
                 if act.mate:
@@ -275,25 +277,34 @@ class Reading_Group_Sched(Graph):
         weekLen= self.schedParams.days
         classActList=[]
 
-        for group in self.classList.readingGroupList:
+        for groupNumber in self.classList.groupNumberList:
             groupActList=[]
 
             for day in range(0, weekLen):
                 #reading_group_Act(self, group, day, actType):
-                newAct= Reading_Group_Activity(group, day, 'Small Group Lesson')
+                newAct= Reading_Group_Activity(self.classList.readingGroups[groupNumber], day, 'Small Group Lesson')
                 #newAct.print_act()         
                 #add each act to groups list and sched act list for maxMatch
                 groupActList.append(newAct)
                 classActList.append(newAct)
 
             #add group act list to group class object. in group function add it to each stuent too
-            group.add_actList(groupActList)  
+            self.classList.readingGroups[groupNumber].add_actList(groupActList)  
        
         #add group act list to class schedule (dictionary day:actList) if keeping as a list instead of dictionary by day 
         self.add_act_list(classActList)
         
         #add group act to set u in graph class
         self.U= classActList 
+        
+        #print('U in make grup act funct')
+        #self.print_set(self.U) 
+        #self.print_act_list(self.U)
+        
+    def print_act_list(self, actList):
+        print('print act list')
+        for act in actList:
+            act.print_act()
 
 
     def add_act_list(self, classActList):
@@ -304,7 +315,7 @@ class Reading_Group_Sched(Graph):
                 self.actSched[activity.day].append(activity)
             else:
                 self.actSched[activity.day]=[]
-
+                self.actSched[activity.day].append(activity)
 
     def add_teacher_pref(self):
         str1= 'For each staff member, enter the group number of each group that may be scheduled with the staff member'
@@ -575,33 +586,45 @@ class Class_List():
         #add number of days in week
         #start and stop times
         self.studentList=[]
-        self.readingGroupList=[]
+        #self.readingGroupList=[]
+        #delete this
         self.numOfGroups=0
-        
+        self.groupNumberList=[] 
+        self.readingGroups= {}
+
         studentData= self.read_stu_file(studentFile)
         
         #make list of of all students
         for kid in studentData:
             self.studentList.append(Student(kid))
-       
+        
+        
         #count how many reading groups/levels and make list of group numbers
+        #or make list of readingGroups an make dictionary for readingGroups
         maxGroupNum=0 
         for student in self.studentList:        
             if student.groupNumber > maxGroupNum:
                 maxGroupNum= student.groupNumber
         self.numOfGroups=maxGroupNum
-        #print('max group number', maxGroupNum)
+        #delete above -----------------------------------------------------------------------
 
-        #initialize reading group for each level, is there a readingGroup zero with no students
-        for i in range(0, maxGroupNum+1):
-            self.readingGroupList.append(Reading_Group(i))
-            
-        #add each student to reading list
+        #make list of student groups to allow iterating through groups in dictionary
+        groupNumberList=[]
         for student in self.studentList:
-            self.readingGroupList[student.groupNumber].add_student_to_group(student)
+            if student.groupNumber not in groupNumberList:
+                groupNumberList.append(student.groupNumber)
+        self.groupNumberList=groupNumberList
 
+        #make dictionary of student groups
+        for student in self.studentList:
+            if student.groupNumber in self.readingGroups:
+                self.readingGroups[student.groupNumber].add_student_to_group(student)
+            else:
+                self.readingGroups[student.groupNumber]=Reading_Group(student.groupNumber)
+                self.readingGroups[student.groupNumber].add_student_to_group(student)
+                
         #test print students in each reading group
-        #for group in self.readingGroupList:
+        #for group in self.groupNumberList:
             #group.print_reading_group()    
 
     def read_stu_file(self, filePath):
@@ -926,13 +949,6 @@ student1= Student(testStData)
 filePath='students.csv'
 myClassList= Class_List(filePath)
 
-count=0
-for group in myClassList.readingGroupList:
-    print('loop= ', count)
-    if group:
-        print('Group Number', group.groupNumber)
-        print(group.studentList) 
-    count=+1
 # .................................
 # make teacher clas and schedule
 # .................................
@@ -954,11 +970,14 @@ readingGroupSched1.make_group_act()
 readingGroupSched1.add_teacher_pref()
 readingGroupSched1.set_edges()
 
-#makes matches
 readingGroupSched1.unionVU= readingGroupSched1.V + readingGroupSched1.U
+
+
+
 #why are none objects appearing in vertex list?
 readingGroupSched1.max_match()
 readingGroupSched1.print_group_teacher()
+
 readingGroupSched1.print_matches()
 
 # .............................
