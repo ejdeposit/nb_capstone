@@ -1,7 +1,3 @@
-#Evan DePosit
-#New Beginnings
-#capstone
-#This file contains class data structures to store student information and functions to read that information from a file
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 #                                                       $match
@@ -169,7 +165,7 @@ class Event(Vertex):
         if self.teacher:
             print('Teacher: ', self.teacher.name)
         print('day: ', self.day)
-        print('Start: ', min_to_time(self.start), 'End: ', min_to_time(self.end))
+        print('Start: ', tm.min_to_time(self.start), 'End: ', tm.min_to_time(self.end))
         if self.num:
             print('vertex number: ', self.num)
 
@@ -508,74 +504,135 @@ class Schedule_Parameters():
         """
         return self.dailyEvents[day]
 
-def min_to_time(minTime):
+#-------------------------------------------------------------------------------------------------------------------------------    
+#                                                         $teacher
+# -----------------------------------------------------------------------------------------------------------------------------             
 
-    minutes=minTime%60
-    hour=int(minTime/60)
-    #print('hour= ', hour)
-    #print('minutes= ', minutes)
-    
-    if hour == 12:
-        timeOfDay='PM'
-    elif hour > 12:
-        timeOfDay='PM'
-        hour= hour-12
-    else:
-        timeOfDay='AM'    
-    
-    time=str(hour) + ':' + str(minutes) + ' ' + timeOfDay
-    #print('time= ', time)
-    return time 
+class Staff_Schedule():
+    def __init__(self):
+        self.dayCount=0
+        self.maxTimesInOut=0
+        self.teacherList=[]
 
-def time_to_min(time):
-    #input time as string
-    #output time as minutes
-    #test cases
-    minutes=999 
+    def read_teachers(self, filePath):
+        #throw away first line or maybe use to determine day
+        fin = open(filePath, 'rt')
+        line=fin.readline() 
+        #line=line[:-1:]
+        #print(line)
 
-    fields= time.split(':')
-    #print()
-    #print(fields)
-    
-    #get hour first
-    hourStr=fields.pop(0)
-    hour=int(hourStr)
-
-    #start by getting time of day from last string in list iff there at all
-    if (('am' in fields[-1]) or ('AM' in fields[-1])):
-        #print('its morning')
-        timeOfDay= 0
-    elif(('pm' in fields[-1]) or ('PM' in fields[-1]) and (hour !=12)):
-        #print("it's the afternoon")
-        #time of day equals minutes that happened in morning that need to be added
-        timeOfDay=720
-    else:
-        #print('no time of day info in string')
-        timeOfDay=None 
+        teacherData=[]
         
-    minStr=fields.pop(0)
+        teacherDataList=[]
+        while True:
+            #read in each student by line and count total
+            line= fin.readline()
+            if not line:
+                break
+            #line=line[:-1:]
+            #print each line of student data
+            #print(line)
+            
+            #add to teacherData list
+            teacherData=line.split(',')
+            teacherDataList.append(teacherData)
+        
+        fin.close()
+        #print(teacherDataList)
+        return teacherDataList
+        
+    #add pattern matching to identify how many in/out times for eac day
+    def teacher_sched(self, teacherTimes):
+        #input: list of strings each string lis line from teacher schedule file
+        #output list of teacher objects
+        #start by just making general schedule for one day/all week
+        teacherList=[]
+        #print('teacherTimes list')
+        #print(teacherTimes)
+        #orgainize teacher schedule by teacher or day?  teacher
+        #count how many days in schedule and how many in/out times in day from file
+        #need to have class set up before this point
+        
+        #hard coded, need to add functions
+        self.dayCount=4
+        self.maxTimesInOut=2
+        dayCount=self.dayCount
+        inOutCount=self.maxTimesInOut
 
-    #print('hour string= ', hourStr)
-    #print('minutes string= ', minStr)
-    #if timeOfDay is not None:
-        #print('time of day: ', timeOfDay)
+        for line in teacherTimes:
+            #list of days, each day is list of in/out lists
+            dayList=[]
+            name =line.pop(0)
+            #list of days, each day is list of time chunks which is list  clockin/out times
+
+            #loop for each day
+            for i in range(0, dayCount):
+                #each day is list of in/out times
+                dayList.append([])
+                #get each time that teacher enters/leaves class in one day
+                for j in range(0, inOutCount):
+                    #get in and out Time as string
+                    inTimeStr=line.pop(0)
+                    outTimeStr=line.pop(0) 
+                    #convert int time to min int times with function
+                    #need handling for empty strngs if:else intime=NONE
+                    inOut=[]
+                    if(inTimeStr):
+                        inTime=tm.time_to_min(inTimeStr)
+                        outTime=tm.time_to_min(outTimeStr)
+                        #add to list tuple list
+                        inOut.append(inTime)
+                        inOut.append(outTime)
+                        #add to tuple to lis day list
+                    dayList[i].append(inOut) 
+
+            #change to separate function
+            #print(name)
+            #print each day
+            #for i in range(0, dayCount): 
+                #print('day', i)
+                #for j in range(0, inOutCount):
+                #for j in range(0, len(dayList[i])):
+                    #if(dayList[i][j]):
+                        #print('In: ', dayList[i][j][0])
+                        #print('Out: ', dayList[i][j][1])
+          
+            self.teacherList.append(Teacher(name, dayList, dayCount))
+        return
+        
+    def print_staff(self):
+        print('print staff function')
+        for teacher in self.teacherList:
+            teacher.print_teacher()
+            
+
+class Teacher():
+    def __init__(self, name, schedule, weekLen):
+        self.name=name
+        self.schedule=schedule
+        #dictionary is schedule with day as key and list of lesson events as item
+        self.lessonEventSched={}
+        self.groupPref=[]
     
-    #get numbers from sting
-    minutes= int(minStr[:2:])
+    def print_teacher(self):
+        print(self.name)
+        day=0
+        for i in self.schedule:
+            print('day ', day)
+            inOut= 0
+            for time in self.schedule[day]:
+                if self.schedule[day][inOut]:
+                    print(self.schedule[day][inOut][0])
+                    print(self.schedule[day][inOut][1])
+                inOut= inOut + 1
+            day=day + 1
 
-    #print('hour int=', hour)
-    #print('minutes int= ', minutes)
-    #print('remaining minutes', minStr)
-    if timeOfDay is None:
-        if(hour >=1 and hour< 7):
-            minutes= ((hour +12)*60)+ minutes
-        else:
-            minutes= (hour*60)+minutes
-    else:
-        minutes =(60 * hour) + minutes + timeOfDay
+    def get_days_inOuts(self, day):
+        return self.schedule[day]
 
-    #print('total minutes', minutes)
-    return minutes
+    def add_event(self, eventList, day):
+        self.lessonEventSched[day]=eventList    
+         
 
 # -------------------------------------------------------------------------------------------------------------------
 #                                                      $student
@@ -747,242 +804,5 @@ class Student():
                 event.print_event()
         else:
             print('No Free List Events')
-#-------------------------------------------------------------------------------------------------------------------------------    
-#                                                         $teacher
-# -----------------------------------------------------------------------------------------------------------------------------             
 
-class Staff_Schedule():
-    def __init__(self):
-        self.dayCount=0
-        self.maxTimesInOut=0
-        self.teacherList=[]
-
-    def read_teachers(self, filePath):
-        #throw away first line or maybe use to determine day
-        fin = open(filePath, 'rt')
-        line=fin.readline() 
-        #line=line[:-1:]
-        #print(line)
-
-        teacherData=[]
-        
-        teacherDataList=[]
-        while True:
-            #read in each student by line and count total
-            line= fin.readline()
-            if not line:
-                break
-            #line=line[:-1:]
-            #print each line of student data
-            #print(line)
-            
-            #add to teacherData list
-            teacherData=line.split(',')
-            teacherDataList.append(teacherData)
-        
-        fin.close()
-        #print(teacherDataList)
-        return teacherDataList
-        
-    #add pattern matching to identify how many in/out times for eac day
-    def teacher_sched(self, teacherTimes):
-        #input: list of strings each string lis line from teacher schedule file
-        #output list of teacher objects
-        #start by just making general schedule for one day/all week
-        teacherList=[]
-        #print('teacherTimes list')
-        #print(teacherTimes)
-        #orgainize teacher schedule by teacher or day?  teacher
-        #count how many days in schedule and how many in/out times in day from file
-        #need to have class set up before this point
-        
-        #hard coded, need to add functions
-        self.dayCount=4
-        self.maxTimesInOut=2
-        dayCount=self.dayCount
-        inOutCount=self.maxTimesInOut
-
-        for line in teacherTimes:
-            #list of days, each day is list of in/out lists
-            dayList=[]
-            name =line.pop(0)
-            #list of days, each day is list of time chunks which is list  clockin/out times
-
-            #loop for each day
-            for i in range(0, dayCount):
-                #each day is list of in/out times
-                dayList.append([])
-                #get each time that teacher enters/leaves class in one day
-                for j in range(0, inOutCount):
-                    #get in and out Time as string
-                    inTimeStr=line.pop(0)
-                    outTimeStr=line.pop(0) 
-                    #convert int time to min int times with function
-                    #need handling for empty strngs if:else intime=NONE
-                    inOut=[]
-                    if(inTimeStr):
-                        inTime=time_to_min(inTimeStr)
-                        outTime=time_to_min(outTimeStr)
-                        #add to list tuple list
-                        inOut.append(inTime)
-                        inOut.append(outTime)
-                        #add to tuple to lis day list
-                    dayList[i].append(inOut) 
-
-            #change to separate function
-            #print(name)
-            #print each day
-            #for i in range(0, dayCount): 
-                #print('day', i)
-                #for j in range(0, inOutCount):
-                #for j in range(0, len(dayList[i])):
-                    #if(dayList[i][j]):
-                        #print('In: ', dayList[i][j][0])
-                        #print('Out: ', dayList[i][j][1])
-          
-            self.teacherList.append(Teacher(name, dayList, dayCount))
-        return
-        
-    def print_staff(self):
-        print('print staff function')
-        for teacher in self.teacherList:
-            teacher.print_teacher()
-            
-
-class Teacher():
-    def __init__(self, name, schedule, weekLen):
-        self.name=name
-        self.schedule=schedule
-        #dictionary is schedule with day as key and list of lesson events as item
-        self.lessonEventSched={}
-        self.groupPref=[]
-    
-    def print_teacher(self):
-        print(self.name)
-        day=0
-        for i in self.schedule:
-            print('day ', day)
-            inOut= 0
-            for time in self.schedule[day]:
-                if self.schedule[day][inOut]:
-                    print(self.schedule[day][inOut][0])
-                    print(self.schedule[day][inOut][1])
-                inOut= inOut + 1
-            day=day + 1
-
-    def get_days_inOuts(self, day):
-        return self.schedule[day]
-
-    def add_event(self, eventList, day):
-        self.lessonEventSched[day]=eventList    
-         
-# ---------------------------------------------------------------------------------------------------------------------------
-#                                                                   $main
-# ---------------------------------------------------------------------------------------------------------------------------
-
-
-#.........................................
-#turn times from 12 to 24 then to decimal
-#.........................................
-
-#time_to_min('12:30:00 PM')
-#time_to_min('9:30 AM')
-#time_to_min('10:30')
-#time_to_min('2:30')
-#min_to_time(750)
-#min_to_time(570)
-#min_to_time(630)
-#min_to_time(870)
-
-# .............................
-# make class schedule parameteres
-# .............................
-# need to add a bit of error handling for bad input
-
-numberOfDays=4
-actPerDay=4
-actDuration=20
-schedParams1= Schedule_Parameters(numberOfDays, actPerDay, actDuration)
-
-#set set weeks eTimes
-weekTimes=[]
-
-for i in range(0, 4):
-    start1=time_to_min('11:15')
-    end1=time_to_min('11:55')
-    start2=time_to_min('12:40')
-    end2=time_to_min('1:20')
-    dayTimes=[]
-    dayTimes.append(start1)
-    dayTimes.append(end1)
-    dayTimes.append(start2)
-    dayTimes.append(end2)
-    weekTimes.append(dayTimes)
-
-#test with extra padding
-#test with less parameters
-#start1=time_to_min('11:15')
-#end1=time_to_min('11:55')
-#dayTimes=[]
-#dayTimes.append(start1)
-#dayTimes.append(end1)
-#weekTimes.append(dayTimes)
-
-schedParams1.set_weeks_eTimes(weekTimes)
-#schedParams1.print_all_eTimes()
-
-# ......................
-# test student class 
-# ......................
-
-#input list[0] joe then student1.first == 'joe'
-testStData=['joe', 'smith', 1]
-student1= Student(testStData)
-#student1.print_student()
-
-
-#...............................
-# make classList of students
-#...............................
-
-#csv <name>,<last>,<number> then list[1] == <last>
-filePath='students.csv'
-myClassList= Class_List(filePath)
-
-# .................................
-# make teacher clas and schedule
-# .................................
-
-teacherSchedLines=[]
-myStaff =Staff_Schedule()
-teacherSchedLines= myStaff.read_teachers('teacher2.csv')
-myStaff.teacher_sched(teacherSchedLines)
-
-#myStaff.print_staff()
-
-
-# .............................
-# put it all together!!???
-# .............................
-readingGroupSched1=Reading_Group_Sched(myStaff, myClassList, schedParams1)
-readingGroupSched1.make_group_event()
-readingGroupSched1.make_group_act()
-readingGroupSched1.add_teacher_pref()
-readingGroupSched1.set_edges()
-
-readingGroupSched1.unionVU= readingGroupSched1.V + readingGroupSched1.U
-
-
-
-#why are none objects appearing in vertex list?
-readingGroupSched1.max_match()
-readingGroupSched1.print_group_teacher()
-
-readingGroupSched1.print_matches()
-
-# .............................
-#          make free list
-# .............................
-#print(schedParams1.dailyEvents)
-myClassList.make_free_list(schedParams1.dailyEvents, numberOfDays)
-
+import timeConvert as tm
