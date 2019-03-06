@@ -110,8 +110,19 @@ readingGroupSched1.max_match()
 #          make free list
 # .............................
 #print(schedParams1.dailyEvents)
+
+#adds reading group events to students schedule
 myClassList.sched_readingGroups(numberOfDays)
+
+# filles in empty slots with free events
 myClassList.make_free_list(schedParams1.dailyEvents, numberOfDays)
+
+#test print student scheudle and free list 
+#make funct to print both freeList sched for each student in class list
+#make func to print freelist for student
+#make func to print sched for student
+#make separate funct to print both individually for classList
+myClassList.print_freeList_sched(numberOfDays)
 
 # .............................
 #          $resource schedule
@@ -124,7 +135,10 @@ resourceSched1.make_resources()
 resourceSched1.make_resource_events(schedParams1.dailyEvents, numberOfDays)
 
 resourceSched1.init_resource_use()
-
-#resourceSched1.set_edges()
+resourceSched1.set_edges()
 resourceSched1.match_events()
-#myClassList.print_class_sched(numberOfDays)
+myClassList.print_sched(numberOfDays)
+
+# .............................
+#          $print sched
+# .............................

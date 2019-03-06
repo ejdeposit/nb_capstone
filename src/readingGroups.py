@@ -164,7 +164,7 @@ class Event(Vertex):
         print('Event: ', self.type)
         if self.teacher:
             print('Teacher: ', self.teacher.name)
-        if self.day:
+        if self.day != None:
             print('day: ', self.day)
         if self.start and self.end:
             print('Start: ', tm.min_to_time(self.start), 'End: ', tm.min_to_time(self.end))

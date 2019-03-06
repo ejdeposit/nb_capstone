@@ -8,7 +8,6 @@ class Resource():
         self.eventList=[]
         self.eventSched={}
         self.eventCount=None
-
     def print_resource(self):
         print('Name:', self.name)
         print('Number Available:', self.number)
@@ -23,10 +22,13 @@ class Resource_Sched():
         self.resources={}
         self.classList=classList 
         self.masterResourceEventList=[]
-        self.masterFreeEventList=[]
-        self.masterEventSched={}
+        self.ResourceEventNumSet=set()
+        self.FreeEventNumSet=set()
         self.weekLen=None 
         self.resourceUse={}
+        self.allEventsByNum={}
+        #how is this organized by resourceName: list of events
+        self.masterEventSched={}
 
     def make_resources(self):
         resources={} 
@@ -127,46 +129,42 @@ class Resource_Sched():
             count+=1
 
     def set_edges(self):
-    #there is no point to edge list 
         weekLen=self.weekLen
         studentList=self.classList.studentList
-        edgeList={}
         studentFreeEvents=[]
         allEvents=[]
-
+       
+        #KEEP make list of all free events
         for student in studentList:
             for i in range(0, weekLen):
                 if i in student.freeList:
                     for freeEvent in student.freeList[i]:
                         studentFreeEvents.append(freeEvent)
 
-        self.masterFreeEventList=studentFreeEvents
+        #combine lists to nubmer
         allEvents= studentFreeEvents + self.masterResourceEventList
-       
-        #print(len(studentFreeEvents))
-        #print(len(allEvents))
         self.number_vertices(allEvents)
        
-        #connect students' freeEvents to resourceEvents based on time
-        for freeEvent in studentFreeEvents:
-            #interate through resources
-            for resourceName in self.resourceList:
-                #iterate events on  resources sched for secified day
-                for resourceEvent in self.resources[resourceName].eventSched[freeEvent.day]:
-                    #if resource event is same time free event add to dictionary of edges
-                    #print('.', sep='', end='')
-                    if resourceEvent.start == freeEvent.start:
-                        if freeEvent.num in edgeList:
-                            edgeList[freeEvent.num].append(resourceEvent.num)
-                        else:
-                            edgeList[freeEvent.num]=[]
-                            edgeList[freeEvent.num].append(resourceEvent.num)
-                        if resourceEvent.num in edgeList:
-                            edgeList[resourceEvent.num]=freeEvent.num
-                        else:
-                            edgeList[resourceEvent.num]=[]
-                            edgeList[resourceEvent.num]=freeEvent.num
-    
+        #create dictionary of all events
+        allEventsByNum={}
+        for event in allEvents:
+            if event.num in allEventsByNum:
+                print('ERROR veretex num already in dictionary')
+            else:
+                allEventsByNum[event.num]=event 
+        
+        studentEventNumSet=set()
+        for event in studentFreeEvents:
+            studentEventNumSet.add(event.num)    
+        
+        resourceEventNumSet=set()
+        for event in self.masterResourceEventList:
+            resourceEventNumSet.add(event.num)   
+
+        self.allEventsByNum=allEventsByNum
+        self.ResourceEventNumSet=resourceEventNumSet
+        self.FreeEventNumSet=studentEventNumSet
+
     def init_resource_use(self):
         #2-d dictionary first key is student name, second key is resource name
         resourceNum={}
@@ -178,48 +176,74 @@ class Resource_Sched():
         
 
     def match_events(self):
+        print('***************************************************************')
+        print('match events')
+        print('***************************************************************')
 
-        studentFreeList=set(self.masterFreeEventList)
-        #resourceEventList=set(self.masterResourceEventList) 
+        studentFreeList= self.FreeEventNumSet
+        resourceEventList=self.ResourceEventNumSet
 
-        totalEvents={}
-        
         #copy event count of each resourced to dictionary name:eventCount
+        totalEvents={}
         for resourceName in self.resourceList:
             totalEvents[resourceName]=self.resources[resourceName].eventCount
 
         while studentFreeList:
-
+            #print('studentFreeList not empty') 
             minWeight=999999999
-            freeEvent=studentFreeEvents.pop()
-            studentName=freeEvent.fullName
+            
+            #pop off a fre event
+            freeEventNum=studentFreeList.pop()
+            freeEvent= self.allEventsByNum[freeEventNum]
+            
+            #get day and name from free event
+            studentName=freeEvent.students.fullName
             day=freeEvent.day
-
+            
+             
             #find resourceEvent at same time with lowest weight
-            for resourceEvent in self.eventSched[day]:
+            #for resourceEvent in self.masterEventSched[day]:
+            #pop num of resourcenumset, don't use masterEventSched.  worse case all on same day
+            for resourceEventNum in resourceEventList:
+                resourceEvent=self.allEventsByNum[resourceEventNum]
                 resourceName= resourceEvent.type
-                if resourceEvent.day ==  day and resourceEvent.mate==None and resourceEvent.start == freeEvent.start: 
+                
+                #already know day is equal, need to check if in resource set
+                #if changing to set, already know mate is none
+                if resourceEvent.day ==  day and resourceEvent.start == freeEvent.start: 
 
-                    #need to make sure student full name is attached to freeEvent
                     #need to make sure resource name is attache to resource event
                     ammHeld=self.resourceUse[studentName][resourceName]
-                    ammCirc=self.resources[resourceName]
-                    edgeWeight=((100 * ammHeld)/ ammCirc) < minWeight
+                    ammCirc=self.resources[resourceName].eventCount
+                    edgeWeight=((100 * ammHeld)/ ammCirc) 
 
                     if edgeWeight < minWeight:
                         minWeight = edgeWeight    
                         resourceMatch=resourceEvent
-            
-            studentFreeList.remove(resourceMatch)
+                        matchNum=resourceMatch.num
+          
+            #remove match from resourceNum list
+            resourceEventList.remove(matchNum)
+
             #match togheter vertices, not totally necessary yet
             resourceMatch.mate= freeEvent 
             freeEvent.mate= resourceMatch 
-            #add event to student schedule
-            student=freeEvent.students
-            student.eventSched[day].append(resourceMatch)
+
             #min is found, update resourceuse table for student
             resourceName=resourceMatch.type
             self.resourceUse[studentName][resourceName]+=1
+             
+            #add event to student schedule
+            student=freeEvent.students
+            if day in student.eventSched:
+                student.eventSched[day].append(resourceMatch)
+            else:
+                student.eventSched[day]=[]
+                student.eventSched[day].append(resourceMatch)
+
+        print('***************************************************************')
+        print('End match events')
+        print('***************************************************************')
 
 import readingGroups
 import timeConvert as tm

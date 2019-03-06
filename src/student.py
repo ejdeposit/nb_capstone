@@ -88,8 +88,8 @@ class Class_List():
             for day in range(0, weekLen):
                 if day in student.actSched:
                     for act in student.actSched[day]:
-                        act.print_act()
-                        act.mate.print_event()
+                        #act.print_act()
+                        #act.mate.print_event()
                         if day in student.eventSched:
                             student.eventSched[day].append(act.mate)
                         else:
@@ -98,11 +98,32 @@ class Class_List():
 
     def make_free_list(self, eventTimes, weekLen):
         for student in self.studentList:
-            print(student.fullName)
+            #print(student.fullName)
             student.make_free_list(eventTimes, weekLen)
 
-    def print_class_sched(self, weekLen):
+    def print_freeList_sched(self, weekLen):
         for student in self.studentList:
+            print()
+            print('-------------------------------------')
+            print(student.fullName)
+            print('-------------------------------------')
+            student.print_freeList(weekLen)
+            student.print_sched(weekLen)
+
+    def print_freeList(self, weekLen):
+        for student in self.studentList:
+            print()
+            print('-------------------------------------')
+            print(student.fullName)
+            print('-------------------------------------')
+            student.print_freeList(weekLen)
+
+    def print_sched(self, weekLen):
+        for student in self.studentList:
+            print()
+            print('-------------------------------------')
+            print(student.fullName)
+            print('-------------------------------------')
             student.print_sched(weekLen)
             
 
@@ -167,14 +188,10 @@ class Student():
             #if no events planned on day
             if day not in self.eventSched:
                 for startEnd in eventTimes[day]:
-                    print('startEnd in eventTimes')
-                    print(startEnd)
+
                     #did I add 'free list event' for some reason. messed up the constructor.
                     newFreeEvent= rg.Event(day, startEnd[0], startEnd[1], 'Free List Event')
-                    print('day=', day)
-                    print('startEnd[0]=', startEnd[0])
-                    print('startEnd[1]=', startEnd[1])
-                    print()
+                    newFreeEvents.stuents=self
                     #newFreeEvent.print_event()
                     
                     #newFreeEvent.students=self
@@ -191,7 +208,7 @@ class Student():
                     if noEvent:
                         #add student to event constructor?
                         newFreeEvent= rg.Event(day, startEnd[0], startEnd[1], 'Free List Event')
-                        #newFreeEvent.students=self
+                        newFreeEvent.students=self
                         dayFreeList.append(newFreeEvent)
 
                 #add to freelist for to day to hash table
@@ -201,25 +218,25 @@ class Student():
         #for event in dayFreeList:
             #event.print_event()
 
-    def print_freeList(self, day, weekLen):
-        #print('Day', day, 'Free List: ')
-        if day in freeList:
-            for event in freeList[day]:
-                event.print_event()
-        else:
-            print('No Free List Events')
+    def print_freeList(self, weekLen):
+        print('-------------------------------------')
+        print('print_freeList')
+        print('-------------------------------------')
+        for day in range(0, weekLen):
+            if day in self.freeList:
+                for event in self.freeList[day]:
+                    event.print_event()
+            else:
+                print('No Free List Events')
 
     def print_sched(self, weekLen):
-        self.print_student()
-
-        print('Free List')
+        print('-------------------------------------')
+        print('print_sched')
+        print('-------------------------------------')
         for day in range(0, weekLen):
-            #self.print_freeList(day, weekLen)
-        
-        print('student schedule')
-        for day in range(0, weekLen):
+            #print('day', day)
             if day in self.eventSched:
-                for event in eventSched[day]:
+                for event in self.eventSched[day]:
                     event.print_event()
             else:
                 print('No Events on day', day)
