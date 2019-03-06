@@ -10,6 +10,7 @@
 import readingGroups as rg
 import timeConvert as tm
 import resource as rs
+import student as st
 
 #.........................................
 #turn times from 12 to 24 then to decimal
@@ -67,7 +68,7 @@ schedParams1.set_weeks_eTimes(weekTimes)
 
 #input list[0] joe then student1.first == 'joe'
 testStData=['joe', 'smith', 1]
-student1= rg.Student(testStData)
+student1= st.Student(testStData)
 #student1.print_student()
 
 
@@ -77,7 +78,7 @@ student1= rg.Student(testStData)
 
 #csv <name>,<last>,<number> then list[1] == <last>
 filePath='students.csv'
-myClassList= rg.Class_List(filePath)
+myClassList= st.Class_List(filePath)
 
 # .................................
 # make teacher clas and schedule
@@ -99,11 +100,7 @@ readingGroupSched1.make_group_event()
 readingGroupSched1.make_group_act()
 readingGroupSched1.add_teacher_pref()
 readingGroupSched1.set_edges()
-
 readingGroupSched1.unionVU= readingGroupSched1.V + readingGroupSched1.U
-
-
-
 readingGroupSched1.max_match()
 #test print of matches
 #readingGroupSched1.print_group_teacher()
@@ -113,13 +110,21 @@ readingGroupSched1.max_match()
 #          make free list
 # .............................
 #print(schedParams1.dailyEvents)
+myClassList.sched_readingGroups(numberOfDays)
 myClassList.make_free_list(schedParams1.dailyEvents, numberOfDays)
-
 
 # .............................
 #          $resource schedule
 # .............................
-resourceSched1= rs.Resource_Sched()
+resourceSched1= rs.Resource_Sched(myClassList)
+
 resourceSched1.make_resources()
-resourceSched1.print_all_resources()
+#resourceSched1.print_all_resources()
+
 resourceSched1.make_resource_events(schedParams1.dailyEvents, numberOfDays)
+
+resourceSched1.init_resource_use()
+
+#resourceSched1.set_edges()
+resourceSched1.match_events()
+#myClassList.print_class_sched(numberOfDays)
