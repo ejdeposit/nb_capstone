@@ -137,8 +137,10 @@ resourceSched1.make_resource_events(schedParams1.dailyEvents, numberOfDays)
 resourceSched1.init_resource_use()
 resourceSched1.set_edges()
 resourceSched1.match_events()
-myClassList.print_sched(numberOfDays)
 
 # .............................
 #          $print sched
 # .............................
+
+myClassList.print_sched(numberOfDays)
+myClassList.sched_to_file(numberOfDays)

@@ -126,6 +126,29 @@ class Class_List():
             print('-------------------------------------')
             student.print_sched(weekLen)
             
+    def sched_to_file(self, weekLen):
+        
+        
+        fout=open('student_sched.csv', 'wt')
+        fout.close()
+        for student in self.studentList:
+            studentLines=student.sched_to_file(weekLen)
+       
+            temp=dict(studentLines[0])
+            headers=list(temp.keys())
+            print(headers) 
+        
+            fout=open('student_sched.csv', 'at')
+            fout.write(student.fullName + '\n')
+            cout = csv.DictWriter(fout, headers)
+            cout.writeheader()
+            cout.writerows(studentLines)
+            fout.close()
+
+        #with open('student_sched.csv', 'wt') as fout:
+            #cout = csv.DictWriter(fout, headers)
+            #cout.writeheader()
+            #cout.writerows(studentLines)
 
 class Reading_Group():   
     def __init__(self, groupNumber):
@@ -241,4 +264,38 @@ class Student():
             else:
                 print('No Events on day', day)
 
+    def sched_to_file(self, weekLen):
+        fileLines=[]
+        startTimeList=[]
+        
+        #go through all schedules to get lst of all the times
+        for day in range(0, weekLen):
+            for event in self.eventSched[day]:
+                if event.start not in startTimeList:
+                    startTimeList.append(event.start)
+        startTimeList.sort()
+
+        print(self.fullName) 
+        print(startTimeList)
+        
+        #initalize dictionary just to avoide using if else statements later
+        schedTime={} 
+        for time in startTimeList:
+            schedTime[time]={}
+            schedTime[time]['Time']=tm.min_to_time(time)
+
+        #go through student sched dictionary again  
+        for day in range(0, weekLen):
+            for event in self.eventSched[day]:
+                schedTime[event.start]['Day '+ str(event.day+1)]=event.type        
+
+        #fileLines.append(self.fullName)
+        for time in startTimeList:
+            #print(schedTime[time])
+            fileLines.append(schedTime[time])
+        print(fileLines)
+        return fileLines
+
 import readingGroups as rg
+import timeConvert as tm
+import csv
