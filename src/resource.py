@@ -30,7 +30,7 @@ class Resource_Sched():
         #how is this organized by resourceName: list of events
         self.masterEventSched={}
 
-    def make_resources(self):
+    def make_resources_test(self):
         resources={} 
         resourceList=[] 
         
@@ -57,7 +57,8 @@ class Resource_Sched():
         self.resources=resources
         self.resourceList=resourceList
     #make_resources
-    def foo(self):
+
+    def make_resources(self):
         str1= "enter the number of different types of resources used for individual reading activities"
         resources={} 
         resourceList=[] 
@@ -176,9 +177,6 @@ class Resource_Sched():
         
 
     def match_events(self):
-        print('***************************************************************')
-        print('match events')
-        print('***************************************************************')
 
         studentFreeList= self.FreeEventNumSet
         resourceEventList=self.ResourceEventNumSet
@@ -240,10 +238,6 @@ class Resource_Sched():
             else:
                 student.eventSched[day]=[]
                 student.eventSched[day].append(resourceMatch)
-
-        print('***************************************************************')
-        print('End match events')
-        print('***************************************************************')
 
 import readingGroups
 import timeConvert as tm

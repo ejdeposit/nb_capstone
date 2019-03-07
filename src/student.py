@@ -136,7 +136,7 @@ class Class_List():
        
             temp=dict(studentLines[0])
             headers=list(temp.keys())
-            print(headers) 
+            #print(headers) 
         
             fout=open('student_sched.csv', 'at')
             fout.write(student.fullName + '\n')
@@ -275,8 +275,8 @@ class Student():
                     startTimeList.append(event.start)
         startTimeList.sort()
 
-        print(self.fullName) 
-        print(startTimeList)
+        #print(self.fullName) 
+        #print(startTimeList)
         
         #initalize dictionary just to avoide using if else statements later
         schedTime={} 
@@ -287,13 +287,15 @@ class Student():
         #go through student sched dictionary again  
         for day in range(0, weekLen):
             for event in self.eventSched[day]:
-                schedTime[event.start]['Day '+ str(event.day+1)]=event.type        
-
+                if event.teacher:
+                    schedTime[event.start]['Day '+ str(event.day+1)]=event.type + '-' + event.teacher.name        
+                else:
+                    schedTime[event.start]['Day '+ str(event.day+1)]=event.type         
         #fileLines.append(self.fullName)
         for time in startTimeList:
             #print(schedTime[time])
             fileLines.append(schedTime[time])
-        print(fileLines)
+        #print(fileLines)
         return fileLines
 
 import readingGroups as rg

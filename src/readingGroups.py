@@ -315,7 +315,7 @@ class Reading_Group_Sched(Graph):
                 self.actSched[activity.day]=[]
                 self.actSched[activity.day].append(activity)
 
-    def add_teacher_pref(self):
+    def add_teacher_pref_test(self):
         str1= 'For each staff member, enter the group number of each group that may be scheduled with the staff member'
         str2= 'separating each group number with a spae and entering return when finished'
         str3= 'If all groups may be scheduled with the staff member, enter all'
@@ -352,7 +352,39 @@ class Reading_Group_Sched(Graph):
         self.teacherSchedule.teacherList[0].groupPref= [1,2,3]
         self.teacherSchedule.teacherList[1].groupPref= [1,2,3]
         self.teacherSchedule.teacherList[2].groupPref= [3]
+
+    def add_teacher_pref(self):
+        str1= 'For each staff member, enter the group number of each group that may be scheduled with the staff member'
+        str2= 'separating each group number with a spae and entering return when finished'
+        str3= 'If all groups may be scheduled with the staff member, enter all'
         
+        GroupsNumbers=[]
+        
+        print('{} {} {}'.format(str1, str2, str3))
+
+        for teacher in self.teacherSchedule.teacherList:
+
+            #remove break when finished testing
+
+            groupPref=[]
+            
+            line=input(teacher.name +': ')
+            if 'all' in line or 'All' in line:
+                #add group pref to teacher
+                allGroups= self.classList.numOfGroups
+                for i in range(1, allGroups+1):
+                    groupPref.append(i)
+            else:
+                numList=line.split(' ')
+                for numStr in numList:
+                    isNumber= re.match('^\d+$', numStr)
+                    if isNumber:
+                        num= int(numStr)
+                        groupPref.append(num) 
+                #add group pef to teacher     
+            teacher.groupPref=groupPref    
+            print(groupPref)
+            
         #for teacher in self.teacherSchedule.teacherList:
             #print(teacher.name, teacher.groupPref)
 
@@ -607,6 +639,28 @@ class Staff_Schedule():
         for teacher in self.teacherList:
             teacher.print_teacher()
             
+    def sched_to_file(self, weekLen):
+        
+        fout=open('teacher_sched.csv', 'wt')
+        fout.close()
+        for teacher in self.teacherList:
+            teacherLines=teacher.sched_to_file(weekLen)
+       
+            temp=dict(teacherLines[0])
+            headers=list(temp.keys())
+            #print(headers) 
+        
+            fout=open('teacher_sched.csv', 'at')
+            fout.write(teacher.name + '\n')
+            cout = csv.DictWriter(fout, headers)
+            cout.writeheader()
+            cout.writerows(teacherLines)
+            fout.close()
+
+        #with open('student_sched.csv', 'wt') as fout:
+            #cout = csv.DictWriter(fout, headers)
+            #cout.writeheader()
+            #cout.writerows(studentLines)
 
 class Teacher():
     def __init__(self, name, schedule, weekLen):
@@ -636,6 +690,42 @@ class Teacher():
         self.lessonEventSched[day]=eventList    
          
 
+    def sched_to_file(self, weekLen):
+        fileLines=[]
+        startTimeList=[]
+
+        # lessonEventSched
+
+        #go through all schedules to get lst of all the times
+        for day in range(0, weekLen):
+            for event in self.lessonEventSched[day]:
+                if event.start not in startTimeList:
+                    startTimeList.append(event.start)
+        startTimeList.sort()
+
+        #print(self.name) 
+        #print(startTimeList)
+        
+        #initalize dictionary just to avoide using if else statements later
+        schedTime={} 
+        for time in startTimeList:
+            schedTime[time]={}
+            schedTime[time]['Time']=tm.min_to_time(time)
+
+        #go through student sched dictionary again  
+        for day in range(0, weekLen):
+            for event in self.lessonEventSched[day]:
+                if event.mate:
+                    schedTime[event.start]['Day '+ str(event.day+1)]=event.type + '- Group' + str(event.mate.readingGroup.groupNumber)   
+                else:
+                    schedTime[event.start]['Day '+ str(event.day+1)]= 'No Group Scheduled'
+        #fileLines.append(self.fullName)
+        for time in startTimeList:
+            #print(schedTime[time])
+            fileLines.append(schedTime[time])
+        #print(fileLines)
+        return fileLines
 
 import timeConvert as tm
 import student as st
+import csv

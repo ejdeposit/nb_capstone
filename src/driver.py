@@ -12,6 +12,8 @@ import timeConvert as tm
 import resource as rs
 import student as st
 
+test= input('Press Enter to Program')
+test= not test
 #.........................................
 #turn times from 12 to 24 then to decimal
 #.........................................
@@ -98,7 +100,12 @@ myStaff.teacher_sched(teacherSchedLines)
 readingGroupSched1= rg.Reading_Group_Sched(myStaff, myClassList, schedParams1)
 readingGroupSched1.make_group_event()
 readingGroupSched1.make_group_act()
-readingGroupSched1.add_teacher_pref()
+
+if test:
+    readingGroupSched1.add_teacher_pref_test()
+else:
+    readingGroupSched1.add_teacher_pref()
+
 readingGroupSched1.set_edges()
 readingGroupSched1.unionVU= readingGroupSched1.V + readingGroupSched1.U
 readingGroupSched1.max_match()
@@ -116,20 +123,18 @@ myClassList.sched_readingGroups(numberOfDays)
 
 # filles in empty slots with free events
 myClassList.make_free_list(schedParams1.dailyEvents, numberOfDays)
-
-#test print student scheudle and free list 
-#make funct to print both freeList sched for each student in class list
-#make func to print freelist for student
-#make func to print sched for student
-#make separate funct to print both individually for classList
-myClassList.print_freeList_sched(numberOfDays)
+#myClassList.print_freeList_sched(numberOfDays)
 
 # .............................
 #          $resource schedule
 # .............................
 resourceSched1= rs.Resource_Sched(myClassList)
 
-resourceSched1.make_resources()
+if test:
+    resourceSched1.make_resources_test()
+else:
+    resourceSched1.make_resources()
+
 #resourceSched1.print_all_resources()
 
 resourceSched1.make_resource_events(schedParams1.dailyEvents, numberOfDays)
@@ -142,5 +147,6 @@ resourceSched1.match_events()
 #          $print sched
 # .............................
 
-myClassList.print_sched(numberOfDays)
+#myClassList.print_sched(numberOfDays)
 myClassList.sched_to_file(numberOfDays)
+myStaff.sched_to_file(numberOfDays)
