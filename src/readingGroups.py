@@ -102,10 +102,6 @@ class Graph():
         return
 
 
-    def foo(self):
-        print('foo')
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 #                                                           $act $event $vertex
 # ---------------------------------------------------------------------------------------------------------------------
@@ -256,6 +252,7 @@ class Reading_Group_Sched(Graph):
         #allEvents not organized by day need separate function
         #self.groupEventList= allEvents                            
         self.add_events(allEvents)
+        random.shuffle(allEvents)
         self.V= allEvents
         
 
@@ -293,6 +290,7 @@ class Reading_Group_Sched(Graph):
         self.add_act_list(classActList)
         
         #add group act to set u in graph class
+        random.shuffle(classActList)
         self.U= classActList 
         
         #print('U in make grup act funct')
@@ -729,3 +727,4 @@ class Teacher():
 import timeConvert as tm
 import student as st
 import csv
+import random
