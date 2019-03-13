@@ -1,3 +1,7 @@
+#Evan DePosit
+#New Beginnings 
+#capstone
+# this file contains functions to convert time strings into integer minutes and back again
 
 def min_to_time(minTime):
 

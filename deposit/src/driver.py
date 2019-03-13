@@ -1,7 +1,7 @@
 #Evan DePosit
 #New Beginnings
 #capstone
-#This file contains class data structures to store student information and functions to read that information from a file
+#this file contains main program for the reading group scheduler 
 
 # ---------------------------------------------------------------------------------------------------------------------------
 #                                                                   $main

@@ -1,3 +1,7 @@
+#Evan DePosit
+#New Beginnings 
+#capstone
+#this file contains class defintions for Reading Group Schedule, Staff Schedule, Teacher, Events and the maximum mathing biparatite graph algorithm
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 #                                                       $match
@@ -344,7 +348,7 @@ class Reading_Group_Sched(Graph):
                         groupPref.append(num) 
                 #add group pef to teacher     
             teacher.groupPref=groupPref    
-            print(groupPref)
+            #print(groupPref)
             
         #hard code teacher pref for repeated testing
         self.teacherSchedule.teacherList[0].groupPref= [1,2,3]
@@ -381,7 +385,7 @@ class Reading_Group_Sched(Graph):
                         groupPref.append(num) 
                 #add group pef to teacher     
             teacher.groupPref=groupPref    
-            print(groupPref)
+            #print(groupPref)
             
         #for teacher in self.teacherSchedule.teacherList:
             #print(teacher.name, teacher.groupPref)

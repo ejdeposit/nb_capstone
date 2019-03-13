@@ -1,3 +1,8 @@
+# Evan DePosit
+# New Beginnings 
+# capstone
+# this file contains class definitions and methods for resource, resource sched, and the algorithm for matching students with resource events
+
 class Resource():
     def __init__(self, name, number, start, end):
         self.name= name
